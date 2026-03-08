@@ -27,7 +27,7 @@ Each user story follows this structure:
 
 ## Suggested order of implementation
 
-- 🔄 US-01  Project bootstrap
+- ✅ US-01  Project bootstrap
 - 🔲 US-02  File extension registration
 - 🔲 US-03  Character schema definition
 - 🔲 US-04  Catalog schema definition
