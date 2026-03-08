@@ -94,7 +94,7 @@ Each user story follows this structure:
 
 ---
 
-### 🔲 US-02 · File extension registration
+### 🔄 US-02 · File extension registration
 **As a** user  
 **I want** `.acx` files to be associated with the application in my operating system  
 **so that** I can open character files by double-clicking them.
@@ -109,10 +109,11 @@ Each user story follows this structure:
 - If the file path is passed as a CLI argument, the application opens that file in a new tab on startup.
 
 **Technical Tasks:**
-- 🔲 Declare the `.acx` file association in `tauri.conf.json` under the `bundle > fileAssociations` key.
-- 🔲 Install and configure `tauri-plugin-single-instance` to detect subsequent invocations and forward the file path to the running instance.
-- 🔲 Implement a Tauri event handler in `src-tauri/src/lib.rs` that receives the file path from the single-instance plugin and emits it to the frontend.
-- 🔲 Implement the frontend event listener that opens the received file path in a new tab, or focuses the existing tab if already open.
+- ✅ Declare the `.acx` file association in `tauri.conf.json` under the `bundle > fileAssociations` key.
+- ✅ Install and configure `tauri-plugin-single-instance` to detect subsequent invocations and forward the file path to the running instance.
+- ✅ Implement a Tauri event handler in `src-tauri/src/lib.rs` that receives the file path from the single-instance plugin and emits it to the frontend.
+- ✅ Implement the frontend event listener that opens the received file path in a new tab, or focuses the existing tab if already open.
+  Note: currently appends file paths to a list — tab management pending US-18.
 - 🔲 Handle the case where no argument is provided (show start screen with a blank character tab).
 
 ### 🔲 US-32 · Multiplatform CI/CD pipeline

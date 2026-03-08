@@ -69,6 +69,7 @@ anima-codex/
 │   ├── requirements.md
 │   ├── architecture.md
 │   └── tasking.md
+├── examples/               # .acx example files
 ├── src/                    # Frontend (SvelteKit + TypeScript)
 │   ├── lib/                # (pending — US-03 onwards)
 │   │   ├── engine/         # Rules engine — no UI dependencies
