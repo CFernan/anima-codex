@@ -72,7 +72,7 @@ The wrapper contains no game domain logic.
 
 Exclusive responsibilities:
 - Render the user interface.
-- Maintain the character state in memory during the session.
+- Maintain an array of open character tabs in memory during the session, each with its own character state, file path, and dirty flag. The active tab determines which character is currently displayed and edited.
 - Execute all domain logic: derived value computation, DP validation, category cost application.
 - Manage the lifecycle of automatic modifiers: generate them when their source changes (e.g. race or category selection) and remove them when the source is no longer applicable. Manual modifiers are created, edited, and deleted exclusively by the player.
 - Validate the structure of a loaded file against the Zod schema before accepting it.
@@ -98,7 +98,7 @@ Exclusive responsibilities:
 ### 4.2 Save Character
 
 ```
-1. The user presses Ctrl+S (or File > Save).
+1. The user presses Ctrl+S (or File > Save). The active tab is identified from the app state.
 2. The frontend serializes the character state to JSON.
 3. The frontend invokes the wrapper's "save_file" command with the JSON and the path.
 4. Tauri writes the file to disk.
@@ -177,6 +177,21 @@ const CharacterSchema = z.object({
   // ... abilities, DP, derived values, free-text fields
 });
 
+// Tab — represents a single open character sheet instance
+const TabSchema = z.object({
+  id:              z.string(),       // unique tab identifier (e.g. UUID)
+  character:       CharacterSchema,
+  currentFilePath: z.string().nullable(),
+  isDirty:         z.boolean(),
+});
+
+const AppStateSchema = z.object({
+  tabs:          z.array(TabSchema),
+  activeTabId:   z.string().nullable(),
+});
+
+type Tab         = z.infer<typeof TabSchema>;
+type AppState    = z.infer<typeof AppStateSchema>;
 type AttributeModifier = z.infer<typeof AttributeModifierSchema>;
 type Attribute         = z.infer<typeof AttributeSchema>;
 type Character         = z.infer<typeof CharacterSchema>;

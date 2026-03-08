@@ -77,6 +77,7 @@ The application will be designed with a **clearly separated two-layer architectu
 - **[MUST]** If the user attempts to close the application or open another file with unsaved changes, a confirmation dialog shall be presented with the options: Save, Discard, and Cancel.
 - **[SHOULD]** The application shall maintain a list of recently opened files, accessible from the menu.
 - **[COULD]** The application shall offer a configurable auto-save option.
+- **[WON'T]** The application shall not provide a side-by-side character comparison view in this version. This capability is deferred to a future iteration.
 
 ### 4.2 Character Sheet Content (First Scope)
 

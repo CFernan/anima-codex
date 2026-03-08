@@ -101,15 +101,17 @@ Each user story follows this structure:
 **Dependencies:** US-01
 
 **Acceptance Criteria:**
-- Double-clicking an `.abf` file on Windows, Linux, and macOS launches the application.
-- If the application is already running, the file is opened in a new window.
-- If the file path is passed as a CLI argument, the application opens that file on startup.
+- Double-clicking an `.abf` file on Windows launches the application and opens the file in a new tab.
+- If the application is already running, double-clicking an `.abf` file opens it in a new tab in the existing window.
+- If the file is already open in a tab, that tab is focused instead of opening a duplicate.
+- If the file path is passed as a CLI argument, the application opens that file in a new tab on startup.
 
 **Technical Tasks:**
 - 🔲 Declare the `.abf` file association in `tauri.conf.json` under the `bundle > fileAssociations` key.
-- 🔲 Implement CLI argument parsing in `src-tauri/src/main.rs` to detect a file path on launch.
-- 🔲 Pass the file path to the frontend via the Tauri event system on startup.
-- 🔲 Handle the case where no argument is provided (show start screen).
+- 🔲 Install and configure `tauri-plugin-single-instance` to detect subsequent invocations and forward the file path to the running instance.
+- 🔲 Implement a Tauri event handler in `src-tauri/src/lib.rs` that receives the file path from the single-instance plugin and emits it to the frontend.
+- 🔲 Implement the frontend event listener that opens the received file path in a new tab, or focuses the existing tab if already open.
+- 🔲 Handle the case where no argument is provided (show start screen with a blank character tab).
 
 ### 🔲 US-32 · Multiplatform CI/CD pipeline
 **As a** developer  
@@ -355,17 +357,18 @@ for each operating system.
 **Dependencies:** US-03, US-05
 
 **Acceptance Criteria:**
-- `File > New` creates a new character with all fields at their default values.
-- Default values are defined in the schema (not in the UI component).
-- The new character has no associated file path (it is "unsaved").
-- The unsaved changes indicator is shown immediately.
-- If there are unsaved changes in the current session, a confirmation dialog is shown first (see US-14).
+- `File > New` opens a new tab with a blank character sheet at default values.
+- Default values are defined in the schema, not in the UI component.
+- The new tab has no associated file path (it is "unsaved").
+- The unsaved changes indicator is shown immediately on the new tab.
+- The new tab becomes the active tab automatically.
 
 **Technical Tasks:**
 - 🔲 Implement `defaultCharacter(): Character` in `src/lib/schema/character.ts`.
 - 🔲 Implement the `File > New` menu action in `MenuBar.svelte`.
-- 🔲 Connect the action to the character store (US-18): replace current state with `defaultCharacter()`.
-- 🔲 Implement the unsaved changes guard (US-14) as a shared utility invoked before state replacement.
+- 🔲 Implement `openNewTab(character, filePath): void` in the app store — 
+  appends a new tab to the tabs array and sets it as active.
+- 🔲 Connect `File > New` to `openNewTab(defaultCharacter(), null)`.
 
 ---
 
@@ -379,19 +382,19 @@ for each operating system.
 
 **Acceptance Criteria:**
 - `File > Open` shows a native file picker filtered to `.abf` files.
-- After selection, the file is read, validated against the schema, and loaded into the session.
-- If the file is invalid, a descriptive error is shown and the current session is not altered.
-- `File > Save` writes the current character state as JSON to the associated file path.
-- `File > Save As` shows a native save dialog and writes to the chosen path.
-- After a successful save, the unsaved changes indicator is cleared.
+- After selection, the file is opened in a new tab. If already open, that tab is focused.
+- If the file is invalid, a descriptive error is shown and no new tab is opened.
+- `File > Save` writes the active tab's character state as JSON to its associated file path.
+- `File > Save As` shows a native save dialog and writes to the chosen path, updating the active tab's file path.
+- After a successful save, the active tab's unsaved changes indicator is cleared.
 - `Ctrl+S` triggers Save. `Ctrl+Shift+S` triggers Save As.
 
 **Technical Tasks:**
 - 🔲 Implement Tauri commands in `src-tauri/src/commands/file.rs`: `open_file_dialog`, `read_file`, `save_file_dialog`, `write_file`.
-- 🔲 Implement file loading logic in the frontend: invoke `open_file_dialog`, read content, validate with Zod, update character store.
-- 🔲 Implement file saving logic: serialise character store state to JSON, invoke `write_file`.
-- 🔲 Implement keyboard shortcut handlers in `App.svelte`.
-- 🔲 Store the current file path in a dedicated Svelte store (`currentFilePath`).
+- 🔲 Implement file loading logic: invoke `open_file_dialog`, read content, validate with Zod, invoke `openNewTab` or focus existing tab.
+- 🔲 Implement duplicate detection: before opening, check if the file path is already present in any tab's `currentFilePath`.
+- 🔲 Implement file saving logic: serialise active tab's character state to JSON, invoke `write_file`, update tab's `currentFilePath` and `isDirty`.
+- 🔲 Implement keyboard shortcut handlers in the layout component.
 
 ---
 
@@ -404,17 +407,21 @@ for each operating system.
 **Dependencies:** US-13
 
 **Acceptance Criteria:**
-- A visual indicator (e.g. asterisk in title bar) is shown whenever there are unsaved changes.
-- Attempting to close the application, open a new file, or create a new character while there are unsaved changes shows a dialog with three options: Save, Discard, Cancel.
-- "Save" triggers the save flow before proceeding.
-- "Discard" proceeds without saving.
-- "Cancel" aborts the action and returns to the current session unchanged.
+- Each tab displays an unsaved changes indicator when `isDirty` is true.
+- Attempting to close a tab with unsaved changes shows a confirmation dialog 
+  with options: Save, Discard, Cancel.
+- Attempting to close the application while any tab has unsaved changes shows 
+  a confirmation dialog for each affected tab in sequence.
+- "Save" triggers the save flow before closing the tab.
+- "Discard" closes the tab without saving.
+- "Cancel" aborts the action and returns to the current state.
 
 **Technical Tasks:**
-- 🔲 Implement a `isDirty` boolean in the character store, set to `true` on any state mutation and `false` after a successful save.
-- 🔲 Implement the confirmation dialog as a shared `UnsavedChangesDialog.svelte` component.
-- 🔲 Implement the `beforeunload` hook in Tauri to intercept window close and invoke the dialog.
-- 🔲 Expose a `guardUnsavedChanges(): Promise<'save' | 'discard' | 'cancel'>` utility used by all actions that replace the current session.
+- 🔲 Implement `isDirty` per tab in the app store, set to `true` on any character state mutation and `false` after a successful save.
+- 🔲 Implement tab close button with unsaved changes indicator.
+- 🔲 Implement `UnsavedChangesDialog.svelte` invoked on tab close.
+- 🔲 Implement the `beforeunload` Tauri hook to iterate over all dirty tabs and invoke the dialog for each before allowing the window to close.
+- 🔲 Expose `guardTabClose(tabId): Promise<'save' | 'discard' | 'cancel'>` utility used by tab close and window close flows.
 
 ---
 
@@ -490,25 +497,30 @@ for each operating system.
 
 ---
 
-### 🔲 US-18 · Character store & reactive engine integration
+### 🔲 US-18 · App store & reactive engine integration
 **As a** developer  
-**I want** a central Svelte store that holds the character state and triggers engine recalculations automatically  
-**so that** any change anywhere in the sheet propagates correctly to all dependent values.
+**I want** a central Svelte store that manages all open tabs and triggers engine recalculations automatically 
+**so that** any change in any tab propagates correctly to all dependent values.
 
 **Priority:** MUST  
 **Dependencies:** US-07, US-09, US-10
 
 **Acceptance Criteria:**
-- A single writable Svelte store holds the full `Character` state.
-- A derived store `derivedStats` always reflects the current output of `computeDerivedStats`.
-- A derived store `dpSummary` always reflects `totalDpSpent` and `remainingDp`.
-- Any mutation to the character store sets `isDirty = true`.
-- No component computes derived values locally; all components read from the derived stores.
+- A single writable Svelte store holds the full app state: an array of tabs 
+  and the active tab ID.
+- Each tab contains its own `Character` state, `currentFilePath`, and `isDirty`.
+- A derived store `activeTab` always reflects the currently selected tab.
+- A derived store `derivedStats` always reflects `computeDerivedStats` for the active tab's character.
+- A derived store `dpSummary` always reflects `totalDpSpent` and `remainingDp` for the active tab's character.
+- Any mutation to a tab's character sets that tab's `isDirty = true`.
+- No component computes derived values locally; all components read from  derived stores.
 
 **Technical Tasks:**
-- 🔲 Implement `src/lib/stores/character.ts` with: `character` (writable), `derivedStats` (derived), `dpSummary` (derived), `isDirty` (derived), `currentFilePath` (writable).
-- 🔲 Implement store mutation helpers: `setBase`, `addManualModifier`, `removeModifier`, `setIdentityField`.
-- 🔲 Ensure all helpers update the store immutably (return new objects rather than mutating in place).
+- 🔲 Implement `src/lib/stores/app.ts` with: `appState` (writable), `activeTab` (derived), `derivedStats` (derived), `dpSummary` (derived).
+- 🔲 Implement tab management helpers: `openNewTab`, `closeTab`, `focusTab`, `setActiveTab`.
+- 🔲 Implement character mutation helpers scoped to a tab: `setBase`, `addManualModifier`, `removeModifier`, `setIdentityField`.
+- 🔲 Rename `character.ts` store to `app.ts` to reflect the broader scope.
+- 🔲 Ensure all helpers update the store immutably.
 
 ---
 
