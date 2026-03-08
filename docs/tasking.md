@@ -114,7 +114,7 @@ Each user story follows this structure:
 - ✅ Implement a Tauri event handler in `src-tauri/src/lib.rs` that receives the file path from the single-instance plugin and emits it to the frontend.
 - ✅ Implement the frontend event listener that opens the received file path in a new tab, or focuses the existing tab if already open.
   Note: currently appends file paths to a list — tab management pending US-18.
-- 🔲 Handle the case where no argument is provided (show start screen with a blank character tab).
+- ✅ Handle the case where no argument is provided (show start screen with a blank character tab).
 
 ### 🔲 US-32 · Multiplatform CI/CD pipeline
 **As a** developer  
