@@ -1,4 +1,18 @@
-use tauri::Emitter;
+use tauri::{AppHandle, Emitter, Manager};
+
+fn handle_second_instance(app: &AppHandle, args: Vec<String>) {
+    // Extract the .acx file path from the second instance arguments
+    let file_path = args.into_iter().skip(1).find(|a| a.ends_with(".acx"));
+
+    if let Some(path) = file_path {
+        let _ = app.emit("open-file", path);
+    }
+
+    // Bring the existing window to the foreground
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.set_focus();
+    }
+}
 
 #[tauri::command]
 fn get_cli_file() -> Option<String> {
@@ -12,13 +26,7 @@ pub fn run() {
         // are opened in the same app instance
         .plugin(
             tauri_plugin_single_instance::init(|app, args, _cwd| {
-                // A second instance was launched — extract the file path
-                // from its arguments and notify the frontend.
-                let file_path = args.into_iter().skip(1).find(|a| a.ends_with(".acx"));
-
-                if let Some(path) = file_path {
-                    let _ = app.emit("open-file", path);
-                }
+                handle_second_instance(app, args);
             }),
         )
         // Register opener plugin to allow open files and URLs

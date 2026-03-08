@@ -94,7 +94,7 @@ Each user story follows this structure:
 
 ---
 
-### 🔄 US-02 · File extension registration
+### ✅ US-02 · File extension registration
 **As a** user  
 **I want** `.acx` files to be associated with the application in my operating system  
 **so that** I can open character files by double-clicking them.
