@@ -27,7 +27,7 @@ The application is structured as two distinct processes communicating via an exp
 │                                         │
 │  · Native window management             │
 │  · File read / write                    │
-│  · .abf extension registration with OS  │
+│  · .acx extension registration with OS  │
 │  · CLI argument handling                │
 └─────────────────────────────────────────┘
 ```
@@ -62,7 +62,7 @@ Exclusive responsibilities:
 - Create and manage the application window.
 - Read files from disk (character sheet, content catalogs).
 - Write files to disk (save character sheet, backups).
-- Register the `.abf` extension with the operating system.
+- Register the `.acx` extension with the operating system.
 - Receive the file path as an argument when the application is launched.
 - Expose the above capabilities to the frontend via explicitly declared commands.
 

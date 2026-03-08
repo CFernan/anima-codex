@@ -43,7 +43,7 @@ The application will be designed with a **clearly separated two-layer architectu
 ## 2. Architecture & Environment
 
 - **[MUST]** The application shall be a standalone desktop executable, compatible with Windows, Linux, and macOS.
-- **[MUST]** The application shall register a custom file extension with the operating system (e.g. `.abf` or `.anima`) to associate character files with the app.
+- **[MUST]** The application shall register a custom file extension with the operating system (e.g. `.acx` or `.anima`) to associate character files with the app.
 - **[MUST]** The application shall be launchable by passing a file path as an argument (double-click in the file explorer).
 - **[SHOULD]** The architecture shall explicitly separate the **rules engine** (computation logic and game data) from the **presentation layer** (user interface), so that both can evolve independently.
 

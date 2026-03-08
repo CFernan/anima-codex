@@ -96,20 +96,20 @@ Each user story follows this structure:
 
 ### 🔲 US-02 · File extension registration
 **As a** user  
-**I want** `.abf` files to be associated with the application in my operating system  
+**I want** `.acx` files to be associated with the application in my operating system  
 **so that** I can open character files by double-clicking them.
 
 **Priority:** MUST  
 **Dependencies:** US-01
 
 **Acceptance Criteria:**
-- Double-clicking an `.abf` file on Windows launches the application and opens the file in a new tab.
-- If the application is already running, double-clicking an `.abf` file opens it in a new tab in the existing window.
+- Double-clicking an `.acx` file on Windows launches the application and opens the file in a new tab.
+- If the application is already running, double-clicking an `.acx` file opens it in a new tab in the existing window.
 - If the file is already open in a tab, that tab is focused instead of opening a duplicate.
 - If the file path is passed as a CLI argument, the application opens that file in a new tab on startup.
 
 **Technical Tasks:**
-- 🔲 Declare the `.abf` file association in `tauri.conf.json` under the `bundle > fileAssociations` key.
+- 🔲 Declare the `.acx` file association in `tauri.conf.json` under the `bundle > fileAssociations` key.
 - 🔲 Install and configure `tauri-plugin-single-instance` to detect subsequent invocations and forward the file path to the running instance.
 - 🔲 Implement a Tauri event handler in `src-tauri/src/lib.rs` that receives the file path from the single-instance plugin and emits it to the frontend.
 - 🔲 Implement the frontend event listener that opens the received file path in a new tab, or focuses the existing tab if already open.
@@ -383,7 +383,7 @@ for each operating system.
 **Dependencies:** US-03, US-05
 
 **Acceptance Criteria:**
-- `File > Open` shows a native file picker filtered to `.abf` files.
+- `File > Open` shows a native file picker filtered to `.acx` files.
 - After selection, the file is opened in a new tab. If already open, that tab is focused.
 - If the file is invalid, a descriptive error is shown and no new tab is opened.
 - `File > Save` writes the active tab's character state as JSON to its associated file path.
