@@ -40,3 +40,25 @@ export const PenalizadorArmaduraEnum = z.enum([
 ]);
 
 export type PenalizadorArmadura = z.infer<typeof PenalizadorArmaduraEnum>;
+
+// ---------------------------------------------------------------------------
+// Archetype enum
+// Used to determine PD costs when multiclassing.
+// A category may belong to 0, 1, or 2 archetypes.
+//
+//   Luchador  — martial combat focused
+//   Domine    — ki/martial arts focused
+//   Acechador — stealth and subterfuge focused
+//   Místico   — magic focused
+//   Psíquico  — psychic focused
+// ---------------------------------------------------------------------------
+
+export const ArquetipoEnum = z.enum([
+  "Luchador",
+  "Domine",
+  "Acechador",
+  "Místico",
+  "Psíquico",
+]);
+
+export type Arquetipo = z.infer<typeof ArquetipoEnum>;
