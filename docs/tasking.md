@@ -29,9 +29,9 @@ Each user story follows this structure:
 
 - ✅ US-01  Project bootstrap
 - ✅ US-02  File extension registration
-- 🔲 US-03  Character schema definition
-- 🔲 US-04  Catalog schema definition
-- 🔲 US-05  Base content catalogs
+- ✅ US-03  Character schema definition
+- ✅ US-04  Catalog schema definition
+- 🔄 US-05  Base content catalogs
 - 🔲 US-06  Derived stats rules files
 - 🔲 US-07  Composite attribute resolution
 - 🔲 US-08  Primary characteristic modifier table
@@ -146,74 +146,98 @@ for each operating system.
 
 ## Epic 2 — Data Layer
 
-### 🔲 US-03 · Character schema definition
-**As a** developer  
-**I want** a formally defined and versioned character schema  
+### ✅ US-03 · Character schema definition
+**As a** developer
+**I want** a formally defined and versioned character schema
 **so that** all character data has a guaranteed shape throughout the application.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-01
 
 **Acceptance Criteria:**
-- A `CharacterSchema` Zod object is defined in `src/lib/schema/character.ts`.
-- The schema includes a `schema_version` field.
-- The schema covers: identity fields, all eight primary characteristics as composite attributes, and free-text fields.
-- All TypeScript types used across the application are inferred from the schema (`z.infer`), with no manually duplicated type definitions.
-- A `Character` type, an `Attribute` type, and an `AttributeModifier` type are exported from the schema module.
+- ✅ A `CharacterSchema` Zod object is defined in `src/lib/schema/character.ts`.
+- ✅ The schema includes a `schema_version` field.
+- ✅ The schema covers: identity fields, all eight primary characteristics,
+  secondary characteristics, resistances, combat skills, secondary skills,
+  hit points, fatigue, presence, creation points, and free-text fields.
+- ✅ All TypeScript types are inferred from the schema (`z.infer`), with no
+  manually duplicated type definitions.
+- ✅ Schema is split into focused modules: `enums.ts`, `attribute.ts`,
+  `combat.ts`, `secondary.ts`, `character.ts`.
+- ✅ Exported types: `AttributeModifier`, `Attribute`, `DirectAttribute`,
+  `PDAttribute`, `HybridAttribute`, `CharacteristicSkill`, `Character`,
+  `CharacterCategory`.
+- ✅ Unit tests in `tests/lib/schema/character.test.ts`.
 
 **Technical Tasks:**
-- 🔲 Implement `AttributeModifierSchema` with fields: `value` (number), `source` (string), `descriptor` (optional string), `automatic` (boolean).
-- 🔲 Implement `AttributeSchema` with fields: `base` (integer), `base_modifiers` (array), `temporary_modifiers` (array).
-- 🔲 Implement `CharacterSchema` covering all fields in scope for the first release.
-- 🔲 Export inferred types: `AttributeModifier`, `Attribute`, `Character`.
-- 🔲 Write unit tests in `tests/schema/character.test.ts` covering: valid character passes validation, missing required field fails, wrong type fails, extra fields are stripped or rejected.
+- ✅ Implement `AttributeModifierSchema` (valor, fuente, descriptor?, automatico).
+- ✅ Implement attribute hierarchy: `AttributeSchema`, `DirectAttributeSchema`,
+  `DirectCharacteristicSkillSchema`, `PDAttributeSchema`,
+  `HybridAttributeSchema`, `PDCharacteristicSkillSchema`.
+- ✅ Implement `CharacterCategorySchema` (multi-class ready, owns PD investments
+  for combat, secondary skills and puntos_de_vida).
+- ✅ Implement `CharacterSchema` covering all fields in scope for first release.
+- ✅ Export all inferred types.
+- ✅ Write unit tests covering: valid character, missing required fields,
+  wrong types, negative values, custom skills, modifiers, and multi-class.
 
 ---
 
-### 🔲 US-04 · Catalog schema definition
-**As a** developer  
-**I want** a formally defined schema for content catalogs  
-**so that** base content and custom mods can be validated consistently.
+### ✅ US-04 · Catalog schema definition
+**As a** developer
+**I want** formally defined schemas for game content catalogs
+**so that** base content and custom extensions can be validated consistently.
 
-**Priority:** MUST  
-**Dependencies:** US-01
+**Priority:** MUST
+**Dependencies:** US-03
 
 **Acceptance Criteria:**
-- A `CatalogSchema` Zod object is defined in `src/lib/schema/catalog.ts`.
-- Every catalog entry has a unique `id` field used as the override key.
-- The schema supports multilingual `name` fields (`{ en: string, es: string }`).
-- All catalog types used across the application are inferred from the schema.
+- ✅ Catalog schemas are split by domain: `combat.ts` and `secondary.ts`
+  within `src/lib/schema/`.
+- ✅ `CombatCatalogSchema` defines static rules for all combat skills
+  (nombre, caracteristica). Extensible via optional `custom` record.
+- ✅ `SecondaryCatalogSchema` defines static rules for all secondary skills
+  grouped by type (nombre, caracteristica, conocimiento, penalizador_armadura).
+  Extensible via optional `custom` group.
+- ✅ `conocimiento` defaults to `false`, `penalizador_armadura` defaults to
+  `ninguno` — omitted in data files when default.
+- ✅ All catalog types are inferred from schemas (`z.infer`, `z.input`).
+- ✅ `PenalizadorArmaduraEnum` covers: ninguno, reducible,
+  reducible_hasta_mitad, no_reducible, percepcion.
 
 **Technical Tasks:**
-- 🔲 Implement `CatalogEntrySchema` as a base schema with `id` and `name` fields.
-- 🔲 Implement specific catalog entry schemas (weapons, secondary abilities, categories, races) extending the base.
-- 🔲 Implement `CatalogSchema` wrapping a typed array of entries with `catalog` identifier and `version` fields.
-- 🔲 Export inferred types for each catalog.
-- 🔲 Write unit tests in `tests/schema/catalog.test.ts` covering: valid catalog passes, duplicate `id` within a catalog is detected, missing `id` fails.
+- ✅ Implement `CombatSkillDefinitionSchema` and `CombatCatalogSchema` in `combat.ts`.
+- ✅ Implement `SecondarySkillDefinitionSchema` and `SecondaryCatalogSchema`
+  in `secondary.ts`.
+- ✅ Export inferred types and input types for all catalog schemas.
 
 ---
 
-### 🔲 US-05 · Base content catalogs
-**As a** developer  
-**I want** the base game content to be available as external JSON catalog files  
-**so that** it is decoupled from the application code and can be replaced or extended.
+### 🔄 US-05 · Base content catalogs
+**As a** developer
+**I want** the base game content available as validated data
+**so that** it is decoupled from application logic and can be extended.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-04
 
 **Acceptance Criteria:**
-- The `data/` directory contains valid catalog files for: categories (with DP costs), races, weapons, and secondary abilities.
-- Each file conforms to the `CatalogSchema` for its type.
-- The application loads all base catalogs on startup and keeps them in memory.
-- If a catalog file is missing or malformed, an error is reported and the application remains usable with the catalogs that did load successfully.
+- ✅ `src/lib/data/defaultCatalog.ts` contains the full official Anima:
+  Beyond Fantasy catalog for combat and secondary skills.
+- ✅ All entries validated against their schemas via unit tests.
+- 🔲 `src/lib/data/defaultCategoryCosts.ts` contains PD costs for all
+  official categories. (placeholder exists, official values pending)
+- 🔲 The application loads catalogs on startup and keeps them in a Svelte store.
+- 🔲 Missing or malformed catalogs are reported without crashing the app.
 
 **Technical Tasks:**
-- 🔲 Create `data/categories.json` with all official Anima categories and their DP cost tables.
-- 🔲 Create `data/races.json` with all official races and their attribute modifiers.
-- 🔲 Create `data/weapons.json` with base weapon stats.
-- 🔲 Create `data/secondary-abilities.json` with all secondary abilities and their governing characteristics.
-- 🔲 Implement the Tauri command `load_catalogs` in `src-tauri/src/commands/file.rs` to read all files from the `data/` directory and return their contents.
-- 🔲 Implement catalog loading logic in `src/lib/stores/catalogs.ts`: invoke `load_catalogs`, validate each file against its schema, store valid catalogs in a Svelte store, report errors for invalid ones.
+- ✅ Implement `defaultCombatCatalog` and `defaultSecondaryCatalog` in
+  `src/lib/data/defaultCatalog.ts`.
+- ✅ Write unit tests in `tests/lib/data/defaultCatalog.test.ts` covering:
+  schema validation, default values, conocimiento flags, armor penalties,
+  and valid characteristics.
+- 🔲 Complete `defaultCategoryCosts.ts` with official PD costs per category.
+- 🔲 Implement catalog store in `src/lib/stores/catalogs.ts`.
 
 ---
 
