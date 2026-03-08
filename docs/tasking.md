@@ -91,6 +91,7 @@ Each user story follows this structure:
 - ✅ Add `docs/requirements.md` and `docs/architecture.md` to the repository.
 - ✅ Write the initial `README.md` with setup and run instructions.
 - ✅ Verify the project builds a release executable on Windows.
+- ✅ Design and set the application icon for all required sizes and platforms.
 
 ---
 
