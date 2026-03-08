@@ -44,6 +44,24 @@ Rust dependencies. Subsequent builds will be significantly faster.
 
 ---
 
+## Building for Production
+
+To produce a release executable for your current platform:
+```bash
+npm run tauri build
+```
+
+The output artifacts will be located in `src-tauri/target/release/bundle/`:
+
+| Platform | Artifact |
+|---|---|
+| Windows (MSI) | `msi/anima-codex_0.1.0_x64_en-US.msi` |
+| Windows (NSIS) | `nsis/anima-codex_0.1.0_x64-setup.exe` |
+
+> **Note:** Linux and macOS builds will be added when the CI/CD pipeline is configured (US-32).
+
+---
+
 ## Project Structure
 ```
 anima-codex/

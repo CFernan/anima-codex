@@ -77,6 +77,7 @@ Each user story follows this structure:
 - TypeScript strict mode is enabled and enforced.
 - The frontend dev server hot-reloads on file save.
 - A `README.md` exists with instructions to install dependencies and run the project in development mode.
+- The project produces a valid installable executable on Windows via `npm run tauri build`.
 
 **Technical Tasks:**
 - ✅ Initialise a Tauri + Svelte + TypeScript project using the official Tauri CLI scaffold.
@@ -89,6 +90,7 @@ Each user story follows this structure:
      Note: superseded by above decision. Structure documented in README.md.
 - ✅ Add `docs/requirements.md` and `docs/architecture.md` to the repository.
 - ✅ Write the initial `README.md` with setup and run instructions.
+- ✅ Verify the project builds a release executable on Windows.
 
 ---
 
