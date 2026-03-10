@@ -1,10 +1,9 @@
 import { z } from "zod";
 import { DirectAttributeSchema,
-         DirectCharacteristicSkillSchema,
          HybridAttributeSchema,
          PDAttributeSchema } from "./attribute";
-import { CombatSkillsSchema } from "./combat";
-import { SecondarySkillsSchema } from "./secondary";
+import { CombatSkillsInvestmentSchema } from "./combat";
+import { SecondarySkillsInvestmentSchema } from "./secondary";
 
 // ---------------------------------------------------------------------------
 // Character category (class)
@@ -18,13 +17,13 @@ export const CharacterCategorySchema = z.object({
   /** Character level within this category. Must be at least 1. */
   nivel: z.number().int().positive(),
   /** Primary combat skills with their PD investments. */
-  combate: CombatSkillsSchema,
+  combate: CombatSkillsInvestmentSchema,
   /** Supernatural skills (reserved for future use). */
   sobrenaturales: z.record(z.string(), PDAttributeSchema).optional(),
   /** Psychic skills (reserved for future use). */
   psiquicas: z.record(z.string(), PDAttributeSchema).optional(),
   /** Secondary skills with their PD investments, grouped by type. */
-  secundarias: SecondarySkillsSchema,
+  secundarias: SecondarySkillsInvestmentSchema,
   /** Hit points (hybrid: fixed base from CON + PD investment). */
   puntos_de_vida: HybridAttributeSchema,
 });
@@ -73,11 +72,11 @@ export const CharacterSchema = z.object({
 
   // --- Presence and resistances ---
   presencia: DirectAttributeSchema,
-  rf: DirectCharacteristicSkillSchema,
-  re: DirectCharacteristicSkillSchema,
-  rv: DirectCharacteristicSkillSchema,
-  rm: DirectCharacteristicSkillSchema,
-  rp: DirectCharacteristicSkillSchema,
+  rf: DirectAttributeSchema,
+  re: DirectAttributeSchema,
+  rv: DirectAttributeSchema,
+  rm: DirectAttributeSchema,
+  rp: DirectAttributeSchema,
 
   // --- Creation points ---
   puntos_creacion: CreationPointsSchema,

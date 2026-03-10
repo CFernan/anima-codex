@@ -123,7 +123,7 @@ describe("CategoryDefinitionSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("accepts secondary group with overrides", () => {
+  it("accepts secondary group with valid overrides", () => {
     const result = CategoryDefinitionSchema.safeParse({
       ...validCategory,
       secundarias: {
@@ -140,6 +140,17 @@ describe("CategoryDefinitionSchema", () => {
       secundarias: {
         ...validCategory.secundarias,
         vigor: { coste: 2, overrides: { p_fuerza: 0 } },
+      },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("fails when an override key does not belong to its group", () => {
+    const result = CategoryDefinitionSchema.safeParse({
+      ...validCategory,
+      secundarias: {
+        ...validCategory.secundarias,
+        vigor: { coste: 2, overrides: { acrobacias: 1 } }, // acrobacias is atleticas, not vigor
       },
     });
     expect(result.success).toBe(false);

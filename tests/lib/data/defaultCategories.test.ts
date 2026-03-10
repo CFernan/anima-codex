@@ -1,18 +1,18 @@
 import { describe, it, expect } from "vitest";
 import { z } from "zod";
 import { AllCategoryDefinitionSchema } from "../../../src/lib/schema/category";
-import { CombatSkillsSchema } from "../../../src/lib/schema/combat";
-import { SecondarySkillsSchema } from "../../../src/lib/schema/secondary";
+import { CombatSkillsInvestmentSchema } from "../../../src/lib/schema/combat";
+import { SecondarySkillsInvestmentSchema } from "../../../src/lib/schema/secondary";
 import { defaultCategories } from "../../../src/lib/data/defaultCategories";
 
 // ---------------------------------------------------------------------------
 // Derive valid keys from schemas — stays in sync automatically
 // ---------------------------------------------------------------------------
 
-const VALID_COMBAT_KEYS = new Set(Object.keys(CombatSkillsSchema.shape));
+const VALID_COMBAT_KEYS = new Set(Object.keys(CombatSkillsInvestmentSchema.shape));
 
 const VALID_SECONDARY_GROUPS: Record<string, Set<string>> = Object.fromEntries(
-  Object.entries(SecondarySkillsSchema.shape).map(([group, schema]) => [
+  Object.entries(SecondarySkillsInvestmentSchema.shape).map(([group, schema]) => [
     group,
     new Set(
       Object.keys((schema as z.ZodObject<z.ZodRawShape>).shape)

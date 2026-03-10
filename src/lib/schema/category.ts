@@ -1,31 +1,52 @@
 import { z } from "zod";
-import { ArquetipoEnum } from "./enums";
+import type { BasicCombatSkillKey } from "./combat";
+import { BasicCombatSkillCostSchema } from "./combat";
+import {
+  AtleticasGroupCostSchema,
+  SocialesGroupCostSchema,
+  PerceptivasGroupCostSchema,
+  IntelectualesGroupCostSchema,
+  VigorGroupCostSchema,
+  SubterfugioGroupCostSchema,
+  CreativasGroupCostSchema,
+} from "./secondary";
+import type { SecondaryGroupKey } from "./secondary";
 
 // Shorthand validators
 const nonnegInt = z.number().int().nonnegative(); // turno, pv, bonificadores
-const posInt    = z.number().int().positive();    // all PD costs
 const posFrac   = z.number().min(0).max(1);       // limite_* (0.0 – 1.0)
 
 // ---------------------------------------------------------------------------
-// Secondary skill group cost schema
-// coste: default PD cost for all skills in the group
-// overrides: individual skill costs that differ from the group default
+// Archetype enum
+// Used to determine PD costs when multiclassing.
+// A category may belong to 0, 1, or 2 archetypes.
+//
+//   Luchador  — martial combat focused
+//   Domine    — ki/martial arts focused
+//   Acechador — stealth and subterfuge focused
+//   Místico   — magic focused
+//   Psíquico  — psychic focused
 // ---------------------------------------------------------------------------
 
-const SecondaryGroupCostSchema = z.object({
-  coste:     posInt,
-  overrides: z.record(z.string(), posInt).optional(),
-});
+export const ArquetipoEnum = z.enum([
+  "Luchador",
+  "Domine",
+  "Acechador",
+  "Místico",
+  "Psíquico",
+]);
+
+export type Arquetipo = z.infer<typeof ArquetipoEnum>;
 
 // ---------------------------------------------------------------------------
-// Category costs schema
+// Category definition schema
 // ---------------------------------------------------------------------------
 
 export const CategoryDefinitionSchema = z.object({
   /** Archetype tags used to compute multiclass costs. Empty array = no archetype. */
   arquetipos:        z.array(ArquetipoEnum),
   /** PD cost to buy additional HP multiples. */
-  coste_multiplo_pv: posInt,
+  coste_multiplo_pv: z.number().int().positive(),
   /** Bonus HP gained on every level up. */
   pv:                nonnegInt,
   /** Bonus added to turno on every level up. */
@@ -36,23 +57,24 @@ export const CategoryDefinitionSchema = z.object({
   limite_magia:      posFrac,
   /** Max fraction of PD spendable on psychic skills (0.0 – 1.0). */
   limite_psi:        posFrac,
-  /** PD costs for primary combat skills. */
+  /** PD costs for basic combat skills. Keys validated against BasicCombatSkillKeyEnum. */
   combate: z.object({
-    habilidad_ataque:  posInt,
-    habilidad_parada:  posInt,
-    habilidad_esquiva: posInt,
-    llevar_armadura:   posInt,
-  }),
-  /** PD costs for secondary skills, grouped by type. */
+    habilidad_ataque:  BasicCombatSkillCostSchema,
+    habilidad_parada:  BasicCombatSkillCostSchema,
+    habilidad_esquiva: BasicCombatSkillCostSchema,
+    llevar_armadura:   BasicCombatSkillCostSchema,
+  } satisfies Record<BasicCombatSkillKey, z.ZodTypeAny>),
+  /** PD costs for secondary skills. Keys validated against SecondaryGroupKeyEnum.
+   *  Override keys within each group are validated against that group's skill key enum. */
   secundarias: z.object({
-    atleticas:     SecondaryGroupCostSchema,
-    sociales:      SecondaryGroupCostSchema,
-    perceptivas:   SecondaryGroupCostSchema,
-    intelectuales: SecondaryGroupCostSchema,
-    vigor:         SecondaryGroupCostSchema,
-    subterfugio:   SecondaryGroupCostSchema,
-    creativas:     SecondaryGroupCostSchema,
-  }),
+    atleticas:     AtleticasGroupCostSchema,
+    sociales:      SocialesGroupCostSchema,
+    perceptivas:   PerceptivasGroupCostSchema,
+    intelectuales: IntelectualesGroupCostSchema,
+    vigor:         VigorGroupCostSchema,
+    subterfugio:   SubterfugioGroupCostSchema,
+    creativas:     CreativasGroupCostSchema,
+  } satisfies Record<SecondaryGroupKey, z.ZodTypeAny>),
   /** Skill points granted automatically on every level up, split by domain. */
   bonificadores_innatos: z.object({
     /** Combat skill bonuses (habilidad_ataque, habilidad_parada, etc.). */
