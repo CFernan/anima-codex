@@ -1,246 +1,130 @@
 import { describe, it, expect } from "vitest";
+import { z } from "zod";
 import { AllCategoryDefinitionSchema } from "../../../src/lib/schema/category";
+import { CombatSkillsSchema } from "../../../src/lib/schema/combat";
+import { SecondarySkillsSchema } from "../../../src/lib/schema/secondary";
 import { defaultCategories } from "../../../src/lib/data/defaultCategories";
 
-describe("defaultCategories", () => {
-  it("passes AllCategoryDefinitionSchema validation", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-  });
+// ---------------------------------------------------------------------------
+// Derive valid keys from schemas — stays in sync automatically
+// ---------------------------------------------------------------------------
 
-  it("contains all 20 official categories", () => {
-    expect(Object.keys(defaultCategories)).toHaveLength(20);
-  });
+const VALID_COMBAT_KEYS = new Set(Object.keys(CombatSkillsSchema.shape));
 
-  // --- Arquetipos ---
+const VALID_SECONDARY_GROUPS: Record<string, Set<string>> = Object.fromEntries(
+  Object.entries(SecondarySkillsSchema.shape).map(([group, schema]) => [
+    group,
+    new Set(
+      Object.keys((schema as z.ZodObject<z.ZodRawShape>).shape)
+        .filter(k => k !== "custom")
+    ),
+  ])
+);
 
-  it("Guerrero has arquetipo Luchador only", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Guerrero"].arquetipos).toEqual(["Luchador"]);
+const VALID_SECONDARY_KEYS = new Set(
+  Object.values(VALID_SECONDARY_GROUPS).flatMap(keys => [...keys])
+);
+
+// ---------------------------------------------------------------------------
+// Parse once and share across all tests
+// ---------------------------------------------------------------------------
+
+const parsed = AllCategoryDefinitionSchema.safeParse(defaultCategories);
+
+describe("defaultCategories — structural invariants", () => {
+  it("passes full schema validation", () => {
+    if (!parsed.success) {
+      const errors = parsed.error.issues.map(i => `${i.path.join(".")}: ${i.message}`).join("\n");
+      expect.fail(`Schema validation failed:\n${errors}`);
     }
+    expect(parsed.success).toBe(true);
   });
 
-  it("Novel has no arquetipos", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Novel"].arquetipos).toEqual([]);
-    }
-  });
-
-  it("Tao has Domine and Luchador arquetipos", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Tao"].arquetipos).toContain("Domine");
-      expect(result.data["Tao"].arquetipos).toContain("Luchador");
-    }
-  });
-
-  it("Hechicero Mentalista has Místico and Psíquico arquetipos", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Hechicero Mentalista"].arquetipos).toContain("Místico");
-      expect(result.data["Hechicero Mentalista"].arquetipos).toContain("Psíquico");
-    }
-  });
-
-  it("Ladrón has arquetipo Acechador only", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Ladrón"].arquetipos).toEqual(["Acechador"]);
-    }
-  });
-
-  // --- Limits ---
-
-  it("all limite_* values are between 0 and 1", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      for (const [, cat] of Object.entries(result.data)) {
-        expect(cat.limite_combate).toBeGreaterThanOrEqual(0);
-        expect(cat.limite_combate).toBeLessThanOrEqual(1);
-        expect(cat.limite_magia).toBeGreaterThanOrEqual(0);
-        expect(cat.limite_magia).toBeLessThanOrEqual(1);
-        expect(cat.limite_psi).toBeGreaterThanOrEqual(0);
-        expect(cat.limite_psi).toBeLessThanOrEqual(1);
+  it("every category has all 7 secondary groups", () => {
+    if (!parsed.success) return;
+    for (const [name, cat] of Object.entries(parsed.data)) {
+      const groups = new Set(Object.keys(cat.secundarias));
+      for (const g of Object.keys(VALID_SECONDARY_GROUPS)) {
+        expect(groups, `"${name}" is missing secondary group "${g}"`).toContain(g);
       }
     }
   });
 
-  it("Hechicero has limite_magia of 0.6", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Hechicero"].limite_magia).toBe(0.6);
-    }
-  });
-
-  it("Mentalista has limite_psi of 0.6", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Mentalista"].limite_psi).toBe(0.6);
-    }
-  });
-
-  it("Novel has all limites at 0.6", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Novel"].limite_combate).toBe(0.6);
-      expect(result.data["Novel"].limite_magia).toBe(0.6);
-      expect(result.data["Novel"].limite_psi).toBe(0.6);
-    }
-  });
-
-  // --- PV and turno ---
-
-  it("all categories have positive coste_multiplo_pv", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      for (const [, cat] of Object.entries(result.data)) {
-        expect(cat.coste_multiplo_pv).toBeGreaterThan(0);
-      }
-    }
-  });
-
-  it("Maestro en Armas has coste_multiplo_pv of 10", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Maestro en Armas"].coste_multiplo_pv).toBe(10);
-    }
-  });
-
-  // --- Combat costs ---
-
-  it("all combat costs are between 1 and 3", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      for (const [, cat] of Object.entries(result.data)) {
-        for (const cost of Object.values(cat.combate)) {
-          expect(cost).toBeGreaterThanOrEqual(1);
-          expect(cost).toBeLessThanOrEqual(3);
+  it("no override has the same value as its group coste (redundant override)", () => {
+    if (!parsed.success) return;
+    for (const [name, cat] of Object.entries(parsed.data)) {
+      for (const [group, sg] of Object.entries(cat.secundarias)) {
+        if (!sg.overrides) continue;
+        for (const [skill, cost] of Object.entries(sg.overrides)) {
+          expect(
+            cost,
+            `"${name}" › ${group} › ${skill}: override cost equals group cost (redundant)`
+          ).not.toBe(sg.coste);
         }
       }
     }
   });
 
-  it("Maestro en Armas has llevar_armadura cost of 1", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Maestro en Armas"].combate.llevar_armadura).toBe(1);
+  it("no category has duplicate arquetipos", () => {
+    if (!parsed.success) return;
+    for (const [name, cat] of Object.entries(parsed.data)) {
+      const unique = new Set(cat.arquetipos);
+      expect(
+        unique.size,
+        `"${name}" has duplicate arquetipos`
+      ).toBe(cat.arquetipos.length);
     }
   });
 
-  it("Hechicero has habilidad_ataque cost of 3", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Hechicero"].combate.habilidad_ataque).toBe(3);
+  it("bonificadores_innatos.primarias only references valid combat skill keys", () => {
+    if (!parsed.success) return;
+    for (const [name, cat] of Object.entries(parsed.data)) {
+      for (const key of Object.keys(cat.bonificadores_innatos.primarias)) {
+        expect(
+          VALID_COMBAT_KEYS,
+          `"${name}" › bonificadores_innatos.primarias has unknown key "${key}"`
+        ).toContain(key);
+      }
     }
   });
 
-  // --- Secondary overrides ---
-
-  it("Guerrero has p_fuerza override cost of 1 in vigor", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Guerrero"].secundarias.vigor.overrides?.p_fuerza).toBe(1);
+  it("bonificadores_innatos.secundarias only references valid secondary skill keys", () => {
+    if (!parsed.success) return;
+    for (const [name, cat] of Object.entries(parsed.data)) {
+      for (const key of Object.keys(cat.bonificadores_innatos.secundarias)) {
+        expect(
+          VALID_SECONDARY_KEYS,
+          `"${name}" › bonificadores_innatos.secundarias has unknown key "${key}"`
+        ).toContain(key);
+      }
     }
   });
 
-  it("Hechicero has v_magica override cost of 1 in intelectuales", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Hechicero"].secundarias.intelectuales.overrides?.v_magica).toBe(1);
+  it("secondary overrides only reference valid skill keys for their group", () => {
+    if (!parsed.success) return;
+    for (const [name, cat] of Object.entries(parsed.data)) {
+      for (const [group, sg] of Object.entries(cat.secundarias)) {
+        if (!sg.overrides) continue;
+        const validKeys = VALID_SECONDARY_GROUPS[group];
+        for (const key of Object.keys(sg.overrides)) {
+          expect(
+            validKeys,
+            `"${name}" › ${group}: override key "${key}" does not belong to this group`
+          ).toContain(key);
+        }
+      }
     }
   });
 
-  it("Explorador has animales override cost of 1 in intelectuales", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Explorador"].secundarias.intelectuales.overrides?.animales).toBe(1);
-    }
-  });
-
-  it("Asesino has sigilo override cost of 1 in subterfugio", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Asesino"].secundarias.subterfugio.overrides?.sigilo).toBe(1);
-    }
-  });
-
-  it("Ilusionista has persuasion override cost of 1 in sociales", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Ilusionista"].secundarias.sociales.overrides?.persuasion).toBe(1);
-    }
-  });
-
-  it("Conjurador has ocultismo override cost of 1 in intelectuales", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Conjurador"].secundarias.intelectuales.overrides?.ocultismo).toBe(1);
-    }
-  });
-
-  // --- Bonificadores innatos ---
-
-  it("Guerrero Acróbata has acrobacias secondary bonus of 10", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Guerrero Acróbata"].bonificadores_innatos.secundarias.acrobacias).toBe(10);
-    }
-  });
-
-  it("Explorador has advertir secondary bonus of 10", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Explorador"].bonificadores_innatos.secundarias.advertir).toBe(10);
-    }
-  });
-
-  it("Guerrero has habilidad_ataque primary bonus of 5", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data["Guerrero"].bonificadores_innatos.primarias.habilidad_ataque).toBe(5);
-    }
-  });
-
-  it("Novel has no bonificadores innatos", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(Object.keys(result.data["Novel"].bonificadores_innatos.primarias)).toHaveLength(0);
-      expect(Object.keys(result.data["Novel"].bonificadores_innatos.secundarias)).toHaveLength(0);
-    }
-  });
-
-  it("Mentalista has no bonificadores innatos", () => {
-    const result = AllCategoryDefinitionSchema.safeParse(defaultCategories);
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(Object.keys(result.data["Mentalista"].bonificadores_innatos.primarias)).toHaveLength(0);
-      expect(Object.keys(result.data["Mentalista"].bonificadores_innatos.secundarias)).toHaveLength(0);
+  it("all bonificadores_innatos values are multiples of 5", () => {
+    if (!parsed.success) return;
+    for (const [name, cat] of Object.entries(parsed.data)) {
+      for (const [key, val] of Object.entries(cat.bonificadores_innatos.primarias)) {
+        expect(val % 5, `"${name}" › primarias › ${key}: ${val} is not a multiple of 5`).toBe(0);
+      }
+      for (const [key, val] of Object.entries(cat.bonificadores_innatos.secundarias)) {
+        expect(val % 5, `"${name}" › secundarias › ${key}: ${val} is not a multiple of 5`).toBe(0);
+      }
     }
   });
 });

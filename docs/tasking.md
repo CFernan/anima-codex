@@ -224,19 +224,25 @@ for each operating system.
 **Acceptance Criteria:**
 - ✅ `src/lib/data/defaultCatalog.ts` contains the full official Anima:
   Beyond Fantasy catalog for combat and secondary skills.
+- ✅ `src/lib/data/defaultCategories.ts` contains all 20 official categories
+  with PD costs, overrides, limites, arquetipos, and bonificadores_innatos.
 - ✅ All entries validated against their schemas via unit tests.
-- 🔲 `src/lib/data/defaultCategoryCosts.ts` contains PD costs for all
-  official categories. (placeholder exists, official values pending)
 - 🔲 The application loads catalogs on startup and keeps them in a Svelte store.
 - 🔲 Missing or malformed catalogs are reported without crashing the app.
 
 **Technical Tasks:**
 - ✅ Implement `defaultCombatCatalog` and `defaultSecondaryCatalog` in
   `src/lib/data/defaultCatalog.ts`.
+- ✅ Implement `defaultCategories` in `src/lib/data/defaultCategories.ts`
+  with official PD costs, group/override structure, arquetipos (ArquetipoEnum),
+  and bonificadores_innatos split into primarias and secundarias.
 - ✅ Write unit tests in `tests/lib/data/defaultCatalog.test.ts` covering:
   schema validation, default values, conocimiento flags, armor penalties,
   and valid characteristics.
-- 🔲 Complete `defaultCategoryCosts.ts` with official PD costs per category.
+- ✅ Write unit tests in `tests/lib/data/defaultCategories.test.ts` covering
+  structural invariants: group completeness, redundant overrides, duplicate
+  arquetipos, valid skill keys, override group membership, and bonificador
+  multiples.
 - 🔲 Implement catalog store in `src/lib/stores/catalogs.ts`.
 
 ---

@@ -21,7 +21,7 @@ const SecondaryGroupCostSchema = z.object({
 // Category costs schema
 // ---------------------------------------------------------------------------
 
-export const CategoryCostsSchema = z.object({
+export const CategoryDefinitionSchema = z.object({
   /** Archetype tags used to compute multiclass costs. Empty array = no archetype. */
   arquetipos:        z.array(ArquetipoEnum),
   /** PD cost to buy additional HP multiples. */
@@ -62,9 +62,9 @@ export const CategoryCostsSchema = z.object({
   }),
 });
 
-export type CategoryCosts = z.infer<typeof CategoryCostsSchema>;
-export type CategoryCostsInput = z.input<typeof CategoryCostsSchema>;
+export type CategoryDefinition = z.infer<typeof CategoryDefinitionSchema>;
+export type CategoryDefinitionInput = z.input<typeof CategoryDefinitionSchema>;
 
-export const AllCategoryCostsSchema = z.record(z.string(), CategoryCostsSchema);
-export type AllCategoryCosts = z.infer<typeof AllCategoryCostsSchema>;
-export type AllCategoryCostsInput = z.input<typeof AllCategoryCostsSchema>;
+export const AllCategoryDefinitionSchema = z.record(z.string(), CategoryDefinitionSchema);
+export type AllCategoryDefinition = z.infer<typeof AllCategoryDefinitionSchema>;
+export type AllCategoryDefinitionInput = z.input<typeof AllCategoryDefinitionSchema>;
