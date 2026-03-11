@@ -1,43 +1,11 @@
 import { z } from "zod";
-import { DirectAttributeSchema,
-         HybridAttributeSchema,
-         PDAttributeSchema } from "./attribute";
-import { CombatSkillsInvestmentSchema } from "./combat";
-import { SecondarySkillsInvestmentSchema } from "./secondary";
-
-// ---------------------------------------------------------------------------
-// Character category (class)
-// Array allows future multi-class support without schema changes.
-// Each category owns its PD investments for combat and secondary skills.
-// ---------------------------------------------------------------------------
-
-export const CharacterCategorySchema = z.object({
-  /** Category name (e.g. "Guerrero", "Acróbata"). */
-  nombre: z.string(),
-  /** Character level within this category. Must be at least 1. */
-  nivel: z.number().int().positive(),
-  /** Primary combat skills with their PD investments. */
-  combate: CombatSkillsInvestmentSchema,
-  /** Supernatural skills (reserved for future use). */
-  sobrenaturales: z.record(z.string(), PDAttributeSchema).optional(),
-  /** Psychic skills (reserved for future use). */
-  psiquicas: z.record(z.string(), PDAttributeSchema).optional(),
-  /** Secondary skills with their PD investments, grouped by type. */
-  secundarias: SecondarySkillsInvestmentSchema,
-  /** Hit points (hybrid: fixed base from CON + PD investment). */
-  puntos_de_vida: HybridAttributeSchema,
-});
-
-export type CharacterCategory = z.infer<typeof CharacterCategorySchema>;
-
-// ---------------------------------------------------------------------------
-// Creation points
-// ---------------------------------------------------------------------------
-
-const CreationPointsSchema = z.object({
-  total:    z.number().int().nonnegative(),
-  gastados: z.number().int().nonnegative(),
-});
+import { DerivedAttributeSchema} from "./attribute_type";
+import { CategoryInvestmentSchema } from "./category";
+import { PhysicalCapacitiesInvestmentSchema,
+         CharacteristicInvestmentSchema,
+         SecondaryCharacteristicInvestmentSchema,
+         ResistencesInvestmentSchema } from "./characteristic";
+import { AdvantagesAndDisadvantagesSchema } from "./advantages_and_disadvantages";
 
 // ---------------------------------------------------------------------------
 // Root character schema
@@ -51,39 +19,31 @@ export const CharacterSchema = z.object({
   // --- Identity ---
   nombre:  z.string(),
   jugador: z.string(),
+
+  // --- Race ---
   raza:    z.string(),
 
   // --- Primary characteristics ---
-  agi: DirectAttributeSchema,
-  con: DirectAttributeSchema,
-  des: DirectAttributeSchema,
-  fue: DirectAttributeSchema,
-  int: DirectAttributeSchema,
-  per: DirectAttributeSchema,
-  pod: DirectAttributeSchema,
-  vol: DirectAttributeSchema,
+  caracteristicas_primarias: CharacteristicInvestmentSchema,
+
+  // --- Physical capacities ---
+  capacidades_fisicas: PhysicalCapacitiesInvestmentSchema,
 
   // --- Secondary characteristics ---
-  apariencia: DirectAttributeSchema,
-  tamaño:     DirectAttributeSchema,
+  caracteristicas_secundarias: SecondaryCharacteristicInvestmentSchema,
 
-  // --- Fatigue ---
-  turno: DirectAttributeSchema,
+  // --- Turn ---
+  turno_base: DerivedAttributeSchema,
 
   // --- Presence and resistances ---
-  presencia: DirectAttributeSchema,
-  rf: DirectAttributeSchema,
-  re: DirectAttributeSchema,
-  rv: DirectAttributeSchema,
-  rm: DirectAttributeSchema,
-  rp: DirectAttributeSchema,
+  resistencias: ResistencesInvestmentSchema,
 
   // --- Creation points ---
-  puntos_creacion: CreationPointsSchema,
+  ventajas_y_desventajas: AdvantagesAndDisadvantagesSchema,
 
   // --- Categories (multi-class ready, min 1 required) ---
-  // This includes all PDs investment
-  categorias: z.array(CharacterCategorySchema).min(1),
+  // This includes all PDs investment (primary and secondary skills and HPs)
+  categorias: z.array(CategoryInvestmentSchema).min(1),
 
   // --- Free-text fields ---
   trasfondo: z.string().optional(),

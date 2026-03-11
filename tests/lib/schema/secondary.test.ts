@@ -1,227 +1,197 @@
 import { describe, it, expect } from "vitest";
 import {
-  SecondarySkillsInvestmentSchema,
-  AtleticasGroupCostSchema,
-  VigorGroupCostSchema,
-  SecondarySkillDefinitionSchema,
-  SecondaryCatalogSchema,
-} from "../../../src/lib/schema/secondary";
+  SecondaryInvestmentSchema,
+  SecondaryPDCostSchema,
+  SecondaryRuleDefinitionSchema,
+  SecondaryRuleCatalogSchema,
+} from "$lib/schema/secondary";
+import { assertValid, assertInvalid } from "../helpers/test-helpers";
 
-// ---------------------------------------------------------------------------
-// Test fixtures
-// ---------------------------------------------------------------------------
-
-const validPDAttribute = {
-  pd: 0,
-  modificadores_base: [],
-  modificadores_temporales: [],
-};
+const validPDAttribute = { pd: 0 };
+const validSkillDef = { nombre: "Acrobacias", caracteristica: "agi" };
 
 const validSecundarias = {
   atleticas: {
-    acrobacias: validPDAttribute,
-    atletismo:  validPDAttribute,
-    montar:     validPDAttribute,
-    nadar:      validPDAttribute,
-    trepar:     validPDAttribute,
-    saltar:     validPDAttribute,
-    pilotar:    validPDAttribute,
+    acrobacias: validPDAttribute, atletismo:  validPDAttribute, montar: validPDAttribute,
+    nadar: validPDAttribute, trepar: validPDAttribute, saltar: validPDAttribute, pilotar: validPDAttribute,
   },
   sociales: {
-    estilo:     validPDAttribute,
-    intimidar:  validPDAttribute,
-    liderazgo:  validPDAttribute,
-    persuasion: validPDAttribute,
-    comercio:   validPDAttribute,
-    callejeo:   validPDAttribute,
-    etiqueta:   validPDAttribute,
+    estilo: validPDAttribute, intimidar: validPDAttribute, liderazgo: validPDAttribute,
+    persuasion: validPDAttribute, comercio: validPDAttribute, callejeo: validPDAttribute, etiqueta: validPDAttribute,
   },
-  perceptivas: {
-    advertir: validPDAttribute,
-    buscar:   validPDAttribute,
-    rastrear: validPDAttribute,
-  },
+  perceptivas: { advertir: validPDAttribute, buscar: validPDAttribute, rastrear: validPDAttribute },
   intelectuales: {
-    animales:   validPDAttribute,
-    ciencia:    validPDAttribute,
-    ley:        validPDAttribute,
-    herbolaria: validPDAttribute,
-    historia:   validPDAttribute,
-    tactica:    validPDAttribute,
-    medicina:   validPDAttribute,
-    memorizar:  validPDAttribute,
-    navegacion: validPDAttribute,
-    ocultismo:  validPDAttribute,
-    tasacion:   validPDAttribute,
-    v_magica:   validPDAttribute,
+    animales: validPDAttribute, ciencia: validPDAttribute, ley: validPDAttribute, herbolaria: validPDAttribute,
+    historia: validPDAttribute, tactica: validPDAttribute, medicina: validPDAttribute, memorizar: validPDAttribute,
+    navegacion: validPDAttribute, ocultismo: validPDAttribute, tasacion: validPDAttribute, v_magica: validPDAttribute,
   },
-  vigor: {
-    frialdad:  validPDAttribute,
-    p_fuerza:  validPDAttribute,
-    res_dolor: validPDAttribute,
-  },
+  vigor: { frialdad: validPDAttribute, p_fuerza: validPDAttribute, res_dolor: validPDAttribute },
   subterfugio: {
-    cerrajeria: validPDAttribute,
-    disfraz:    validPDAttribute,
-    ocultarse:  validPDAttribute,
-    robo:       validPDAttribute,
-    sigilo:     validPDAttribute,
-    tramperia:  validPDAttribute,
-    venenos:    validPDAttribute,
+    cerrajeria: validPDAttribute, disfraz: validPDAttribute, ocultarse: validPDAttribute, robo: validPDAttribute,
+    sigilo: validPDAttribute, tramperia: validPDAttribute, venenos: validPDAttribute,
   },
   creativas: {
-    arte:              validPDAttribute,
-    baile:             validPDAttribute,
-    forja:             validPDAttribute,
-    runas:             validPDAttribute,
-    alquimia:          validPDAttribute,
-    animismo:          validPDAttribute,
-    musica:            validPDAttribute,
-    t_manos:           validPDAttribute,
-    caligrafia_ritual: validPDAttribute,
-    orfebreria:        validPDAttribute,
-    confeccion:        validPDAttribute,
-    conf_marionetas:   validPDAttribute,
+    arte: validPDAttribute, baile: validPDAttribute, forja: validPDAttribute, runas: validPDAttribute,
+    alquimia: validPDAttribute, animismo: validPDAttribute, musica: validPDAttribute, t_manos: validPDAttribute,
+    caligrafia_ritual: validPDAttribute, orfebreria: validPDAttribute, confeccion: validPDAttribute, conf_marionetas: validPDAttribute,
   },
 };
 
-const validSkillDef = { nombre: "Acrobacias", caracteristica: "agi" };
+const validSecundariaCosts = {
+  atleticas:     { coste: 2 },
+  sociales:      { coste: 2 },
+  perceptivas:   { coste: 2 },
+  intelectuales: { coste: 3 },
+  vigor:         { coste: 2 },
+  subterfugio:   { coste: 2 },
+  creativas:     { coste: 2 },
+};
 
 // ---------------------------------------------------------------------------
-// SecondarySkillsInvestmentSchema
+// SecondaryInvestmentSchema
 // ---------------------------------------------------------------------------
 
-describe("SecondarySkillsInvestmentSchema", () => {
+describe("SecondaryInvestmentSchema", () => {
   it("accepts valid secondary skills investment", () => {
-    expect(SecondarySkillsInvestmentSchema.safeParse(validSecundarias).success).toBe(true);
+    assertValid(SecondaryInvestmentSchema.safeParse(validSecundarias));
   });
 
   it("fails when a group is missing", () => {
     const { atleticas, ...rest } = validSecundarias;
-    expect(SecondarySkillsInvestmentSchema.safeParse(rest).success).toBe(false);
+    assertInvalid(SecondaryInvestmentSchema.safeParse(rest), "atleticas group is required");
   });
 
   it("fails when a skill within a group is missing", () => {
     const { acrobacias, ...atleticasSinAcro } = validSecundarias.atleticas;
-    const result = SecondarySkillsInvestmentSchema.safeParse({
-      ...validSecundarias,
-      atleticas: atleticasSinAcro,
-    });
-    expect(result.success).toBe(false);
+    assertInvalid(
+      SecondaryInvestmentSchema.safeParse({ ...validSecundarias, atleticas: atleticasSinAcro }),
+      "acrobacias is required within atleticas",
+    );
   });
 
   it("fails when pd is negative on a skill", () => {
-    const result = SecondarySkillsInvestmentSchema.safeParse({
-      ...validSecundarias,
-      atleticas: { ...validSecundarias.atleticas, acrobacias: { ...validPDAttribute, pd: -1 } },
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it("accepts custom skills within a group", () => {
-    const result = SecondarySkillsInvestmentSchema.safeParse({
-      ...validSecundarias,
-      creativas: { ...validSecundarias.creativas, custom: { cocina: validPDAttribute } },
-    });
-    expect(result.success).toBe(true);
+    assertInvalid(
+      SecondaryInvestmentSchema.safeParse({
+        ...validSecundarias,
+        atleticas: { ...validSecundarias.atleticas, acrobacias: { pd: -1 } },
+      }),
+      "pd must be non-negative",
+    );
   });
 });
 
 // ---------------------------------------------------------------------------
-// Group cost schemas (AtleticasGroupCostSchema as representative)
+// SecondaryPDCostSchema
+// An object keyed by SecondaryGroupEnum where each group has coste + sobreescribe.
 // ---------------------------------------------------------------------------
 
-describe("AtleticasGroupCostSchema", () => {
-  it("accepts a valid group cost", () => {
-    expect(AtleticasGroupCostSchema.safeParse({ coste: 2 }).success).toBe(true);
+describe("SecondaryPDCostSchema", () => {
+  it("accepts valid costs for all groups", () => {
+    assertValid(SecondaryPDCostSchema.safeParse(validSecundariaCosts));
   });
 
-  it("accepts group cost with valid overrides", () => {
-    const result = AtleticasGroupCostSchema.safeParse({ coste: 2, overrides: { acrobacias: 1, nadar: 3 } });
-    expect(result.success).toBe(true);
+  it("fails when a group is missing", () => {
+    const { atleticas, ...rest } = validSecundariaCosts;
+    assertInvalid(SecondaryPDCostSchema.safeParse(rest), "atleticas group is required");
   });
 
-  it("fails when coste is zero", () => {
-    expect(AtleticasGroupCostSchema.safeParse({ coste: 0 }).success).toBe(false);
+  it("fails when group coste is zero", () => {
+    assertInvalid(
+      SecondaryPDCostSchema.safeParse({ ...validSecundariaCosts, atleticas: { coste: 0 } }),
+      "coste must be positive",
+    );
   });
 
-  it("fails when coste is negative", () => {
-    expect(AtleticasGroupCostSchema.safeParse({ coste: -1 }).success).toBe(false);
+  it("fails when group coste is negative", () => {
+    assertInvalid(
+      SecondaryPDCostSchema.safeParse({ ...validSecundariaCosts, vigor: { coste: -1 } }),
+      "coste must be positive",
+    );
   });
 
-  it("fails when override key does not belong to atleticas", () => {
-    const result = AtleticasGroupCostSchema.safeParse({ coste: 2, overrides: { venenos: 1 } }); // venenos is subterfugio
-    expect(result.success).toBe(false);
+  it("accepts sobreescribe with valid skill keys for the group", () => {
+    assertValid(SecondaryPDCostSchema.safeParse({
+      ...validSecundariaCosts,
+      vigor: { coste: 2, sobreescribe: { p_fuerza: 1, res_dolor: 3 } },
+    }));
   });
 
-  it("fails when override cost is zero", () => {
-    expect(AtleticasGroupCostSchema.safeParse({ coste: 2, overrides: { acrobacias: 0 } }).success).toBe(false);
+  it("fails when sobreescribe key does not belong to the group", () => {
+    assertInvalid(
+      SecondaryPDCostSchema.safeParse({
+        ...validSecundariaCosts,
+        vigor: { coste: 2, sobreescribe: { acrobacias: 1 } }, // acrobacias belongs to atleticas
+      }),
+      "acrobacias does not belong to vigor group",
+    );
+  });
+
+  it("fails when sobreescribe cost is zero", () => {
+    assertInvalid(
+      SecondaryPDCostSchema.safeParse({
+        ...validSecundariaCosts,
+        vigor: { coste: 2, sobreescribe: { p_fuerza: 0 } },
+      }),
+      "override cost must be positive",
+    );
   });
 });
 
-describe("VigorGroupCostSchema", () => {
-  it("accepts valid vigor overrides", () => {
-    const result = VigorGroupCostSchema.safeParse({ coste: 2, overrides: { p_fuerza: 1 } });
-    expect(result.success).toBe(true);
-  });
-
-  it("fails when override key belongs to another group", () => {
-    const result = VigorGroupCostSchema.safeParse({ coste: 2, overrides: { acrobacias: 1 } });
-    expect(result.success).toBe(false);
-  });
-});
-
 // ---------------------------------------------------------------------------
-// SecondarySkillDefinitionSchema
+// SecondaryRuleDefinitionSchema
 // ---------------------------------------------------------------------------
 
-describe("SecondarySkillDefinitionSchema", () => {
+describe("SecondaryRuleDefinitionSchema", () => {
   it("accepts a minimal valid definition", () => {
-    expect(SecondarySkillDefinitionSchema.safeParse(validSkillDef).success).toBe(true);
+    assertValid(SecondaryRuleDefinitionSchema.safeParse(validSkillDef));
   });
 
   it("defaults conocimiento to false when omitted", () => {
-    const result = SecondarySkillDefinitionSchema.safeParse(validSkillDef);
-    expect(result.success).toBe(true);
+    const result = SecondaryRuleDefinitionSchema.safeParse(validSkillDef);
+    assertValid(result);
     if (result.success) expect(result.data.conocimiento).toBe(false);
   });
 
   it("defaults penalizador_armadura to ninguno when omitted", () => {
-    const result = SecondarySkillDefinitionSchema.safeParse(validSkillDef);
-    expect(result.success).toBe(true);
+    const result = SecondaryRuleDefinitionSchema.safeParse(validSkillDef);
+    assertValid(result);
     if (result.success) expect(result.data.penalizador_armadura).toBe("ninguno");
   });
 
   it("accepts conocimiento true", () => {
-    const result = SecondarySkillDefinitionSchema.safeParse({ ...validSkillDef, conocimiento: true });
-    expect(result.success).toBe(true);
+    assertValid(SecondaryRuleDefinitionSchema.safeParse({ ...validSkillDef, conocimiento: true }));
   });
 
   it("accepts all valid penalizador_armadura values", () => {
-    const values = ["ninguno", "reducible", "reducible_hasta_mitad", "no_reducible", "percepcion"];
-    for (const v of values) {
-      expect(SecondarySkillDefinitionSchema.safeParse({ ...validSkillDef, penalizador_armadura: v }).success).toBe(true);
+    for (const v of ["ninguno", "reducible", "reducible_hasta_mitad", "no_reducible", "percepcion"]) {
+      assertValid(SecondaryRuleDefinitionSchema.safeParse({ ...validSkillDef, penalizador_armadura: v }));
     }
   });
 
   it("fails when penalizador_armadura is invalid", () => {
-    expect(SecondarySkillDefinitionSchema.safeParse({ ...validSkillDef, penalizador_armadura: "total" }).success).toBe(false);
+    assertInvalid(
+      SecondaryRuleDefinitionSchema.safeParse({ ...validSkillDef, penalizador_armadura: "total" }),
+      "penalizador_armadura must be a valid enum value",
+    );
   });
 
   it("fails when caracteristica is invalid", () => {
-    expect(SecondarySkillDefinitionSchema.safeParse({ nombre: "Test", caracteristica: "xyz" }).success).toBe(false);
+    assertInvalid(
+      SecondaryRuleDefinitionSchema.safeParse({ nombre: "Test", caracteristica: "xyz" }),
+      "caracteristica must be a valid characteristic key",
+    );
   });
 
   it("fails when nombre is missing", () => {
-    expect(SecondarySkillDefinitionSchema.safeParse({ caracteristica: "agi" }).success).toBe(false);
+    assertInvalid(SecondaryRuleDefinitionSchema.safeParse({ caracteristica: "agi" }), "nombre is required");
   });
 });
 
 // ---------------------------------------------------------------------------
-// SecondaryCatalogSchema
+// SecondaryRuleCatalogSchema
 // ---------------------------------------------------------------------------
 
-describe("SecondaryCatalogSchema", () => {
+describe("SecondaryRuleCatalogSchema", () => {
   const buildCatalog = () => ({
     atleticas:     { acrobacias: validSkillDef, atletismo: validSkillDef, montar: validSkillDef, nadar: validSkillDef, trepar: validSkillDef, saltar: { nombre: "Saltar", caracteristica: "fue" }, pilotar: validSkillDef },
     sociales:      { estilo: { nombre: "Estilo", caracteristica: "pod" }, intimidar: { nombre: "Intimidar", caracteristica: "vol" }, liderazgo: { nombre: "Liderazgo", caracteristica: "pod" }, persuasion: { nombre: "Persuasión", caracteristica: "int" }, comercio: { nombre: "Comercio", caracteristica: "int" }, callejeo: { nombre: "Callejeo", caracteristica: "int" }, etiqueta: { nombre: "Etiqueta", caracteristica: "int" } },
@@ -233,34 +203,20 @@ describe("SecondaryCatalogSchema", () => {
   });
 
   it("accepts a valid catalog", () => {
-    expect(SecondaryCatalogSchema.safeParse(buildCatalog()).success).toBe(true);
+    assertValid(SecondaryRuleCatalogSchema.safeParse(buildCatalog()));
   });
 
   it("fails when a group is missing", () => {
     const { atleticas, ...rest } = buildCatalog();
-    expect(SecondaryCatalogSchema.safeParse(rest).success).toBe(false);
+    assertInvalid(SecondaryRuleCatalogSchema.safeParse(rest), "atleticas group is required");
   });
 
   it("fails when a skill within a group is missing", () => {
     const catalog = buildCatalog();
     const { acrobacias, ...atleticasSinAcro } = catalog.atleticas;
-    expect(SecondaryCatalogSchema.safeParse({ ...catalog, atleticas: atleticasSinAcro }).success).toBe(false);
-  });
-
-  it("accepts custom skills within a group", () => {
-    const catalog = buildCatalog();
-    const result = SecondaryCatalogSchema.safeParse({
-      ...catalog,
-      creativas: { ...catalog.creativas, custom: { cocina: validSkillDef } },
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it("accepts a custom group at root level", () => {
-    const result = SecondaryCatalogSchema.safeParse({
-      ...buildCatalog(),
-      custom: { marciales: { arte_suave: validSkillDef } },
-    });
-    expect(result.success).toBe(true);
+    assertInvalid(
+      SecondaryRuleCatalogSchema.safeParse({ ...catalog, atleticas: atleticasSinAcro }),
+      "acrobacias is required within atleticas",
+    );
   });
 });

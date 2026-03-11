@@ -1,26 +1,26 @@
-import { describe, it, expect } from "vitest";
+import { describe, it } from "vitest";
 import {
-  CombatSkillsInvestmentSchema,
-  BasicCombatSkillCostSchema,
-  CombatSkillDefinitionSchema,
-  CombatCatalogSchema,
-} from "../../../src/lib/schema/combat";
+  CombatInvestmentSchema,
+  CombatPDCostSchema,
+  CombatRuleDefinitionSchema,
+  CombatRuleCatalogSchema,
+} from "$lib/schema/combat";
+import { assertValid, assertInvalid } from "../helpers/test-helpers";
 
-// ---------------------------------------------------------------------------
-// Test fixtures
-// ---------------------------------------------------------------------------
-
-const validPDAttribute = {
-  pd: 0,
-  modificadores_base: [],
-  modificadores_temporales: [],
-};
+const validPDAttribute = { pd: 0 };
 
 const validCombatInvestment = {
   habilidad_ataque:  validPDAttribute,
   habilidad_parada:  validPDAttribute,
   habilidad_esquiva: validPDAttribute,
   llevar_armadura:   validPDAttribute,
+};
+
+const validCombatCosts = {
+  habilidad_ataque:  2,
+  habilidad_parada:  2,
+  habilidad_esquiva: 2,
+  llevar_armadura:   2,
 };
 
 const validCombatCatalog = {
@@ -31,120 +31,129 @@ const validCombatCatalog = {
 };
 
 // ---------------------------------------------------------------------------
-// CombatSkillsInvestmentSchema
+// CombatInvestmentSchema
 // ---------------------------------------------------------------------------
 
-describe("CombatSkillsInvestmentSchema", () => {
+describe("CombatInvestmentSchema", () => {
   it("accepts a valid investment", () => {
-    expect(CombatSkillsInvestmentSchema.safeParse(validCombatInvestment).success).toBe(true);
+    assertValid(CombatInvestmentSchema.safeParse(validCombatInvestment));
   });
 
   it("fails when a skill is missing", () => {
     const { habilidad_ataque, ...rest } = validCombatInvestment;
-    expect(CombatSkillsInvestmentSchema.safeParse(rest).success).toBe(false);
+    assertInvalid(CombatInvestmentSchema.safeParse(rest), "habilidad_ataque is required");
   });
 
   it("fails when pd is negative", () => {
-    const result = CombatSkillsInvestmentSchema.safeParse({
-      ...validCombatInvestment,
-      habilidad_ataque: { ...validPDAttribute, pd: -5 },
-    });
-    expect(result.success).toBe(false);
+    assertInvalid(
+      CombatInvestmentSchema.safeParse({
+        ...validCombatInvestment,
+        habilidad_ataque: { pd: -5 },
+      }),
+      "pd must be non-negative",
+    );
   });
 
   it("accepts pd of zero", () => {
-    expect(CombatSkillsInvestmentSchema.safeParse(validCombatInvestment).success).toBe(true);
+    assertValid(CombatInvestmentSchema.safeParse(validCombatInvestment));
   });
 
   it("accepts modifiers on a skill", () => {
-    const result = CombatSkillsInvestmentSchema.safeParse({
+    assertValid(CombatInvestmentSchema.safeParse({
       ...validCombatInvestment,
       habilidad_ataque: {
         pd: 10,
-        modificadores_base: [{ valor: 5, fuente: "Bono racial", automatico: true }],
-        modificadores_temporales: [],
+        modificadores_temporales: [{ valor: 5, fuente: "Bono arma" }],
       },
-    });
-    expect(result.success).toBe(true);
+    }));
   });
 });
 
 // ---------------------------------------------------------------------------
-// BasicCombatSkillCostSchema
+// CombatPDCostSchema
+// An object keyed by BasicCombatEnum — not a scalar.
 // ---------------------------------------------------------------------------
 
-describe("BasicCombatSkillCostSchema", () => {
-  it("accepts a positive integer", () => {
-    expect(BasicCombatSkillCostSchema.safeParse(2).success).toBe(true);
+describe("CombatPDCostSchema", () => {
+  it("accepts valid costs for all skills", () => {
+    assertValid(CombatPDCostSchema.safeParse(validCombatCosts));
   });
 
-  it("fails when zero", () => {
-    expect(BasicCombatSkillCostSchema.safeParse(0).success).toBe(false);
+  it("fails when a skill cost is missing", () => {
+    const { habilidad_ataque, ...rest } = validCombatCosts;
+    assertInvalid(CombatPDCostSchema.safeParse(rest), "habilidad_ataque is required");
   });
 
-  it("fails when negative", () => {
-    expect(BasicCombatSkillCostSchema.safeParse(-1).success).toBe(false);
+  it("fails when a skill cost is zero", () => {
+    assertInvalid(
+      CombatPDCostSchema.safeParse({ ...validCombatCosts, habilidad_ataque: 0 }),
+      "cost must be positive",
+    );
   });
 
-  it("fails when not an integer", () => {
-    expect(BasicCombatSkillCostSchema.safeParse(1.5).success).toBe(false);
+  it("fails when a skill cost is negative", () => {
+    assertInvalid(
+      CombatPDCostSchema.safeParse({ ...validCombatCosts, llevar_armadura: -1 }),
+      "cost must be positive",
+    );
+  });
+
+  it("fails when a skill cost is not an integer", () => {
+    assertInvalid(
+      CombatPDCostSchema.safeParse({ ...validCombatCosts, habilidad_parada: 1.5 }),
+      "cost must be an integer",
+    );
   });
 });
 
 // ---------------------------------------------------------------------------
-// CombatSkillDefinitionSchema
+// CombatRuleDefinitionSchema
 // ---------------------------------------------------------------------------
 
-describe("CombatSkillDefinitionSchema", () => {
+describe("CombatRuleDefinitionSchema", () => {
   it("accepts a valid definition", () => {
-    expect(CombatSkillDefinitionSchema.safeParse({ nombre: "Ataque", caracteristica: "des" }).success).toBe(true);
+    assertValid(CombatRuleDefinitionSchema.safeParse({ nombre: "Ataque", caracteristica: "des" }));
   });
 
   it("fails when nombre is missing", () => {
-    expect(CombatSkillDefinitionSchema.safeParse({ caracteristica: "des" }).success).toBe(false);
+    assertInvalid(CombatRuleDefinitionSchema.safeParse({ caracteristica: "des" }), "nombre is required");
   });
 
   it("fails when caracteristica is invalid", () => {
-    expect(CombatSkillDefinitionSchema.safeParse({ nombre: "Ataque", caracteristica: "xyz" }).success).toBe(false);
+    assertInvalid(
+      CombatRuleDefinitionSchema.safeParse({ nombre: "Ataque", caracteristica: "xyz" }),
+      "caracteristica must be a valid characteristic key",
+    );
   });
 
   it("accepts all valid caracteristica values", () => {
-    const valid = ["agi", "con", "des", "fue", "int", "per", "pod", "vol"];
-    for (const c of valid) {
-      expect(CombatSkillDefinitionSchema.safeParse({ nombre: "Skill", caracteristica: c }).success).toBe(true);
+    for (const c of ["agi", "con", "des", "fue", "int", "per", "pod", "vol"]) {
+      assertValid(CombatRuleDefinitionSchema.safeParse({ nombre: "Skill", caracteristica: c }));
     }
   });
 });
 
 // ---------------------------------------------------------------------------
-// CombatCatalogSchema
+// CombatRuleCatalogSchema
 // ---------------------------------------------------------------------------
 
-describe("CombatCatalogSchema", () => {
+describe("CombatRuleCatalogSchema", () => {
   it("accepts a valid catalog", () => {
-    expect(CombatCatalogSchema.safeParse(validCombatCatalog).success).toBe(true);
-  });
-
-  it("accepts catalog with custom skills", () => {
-    const result = CombatCatalogSchema.safeParse({
-      ...validCombatCatalog,
-      custom: {
-        arte_marcial_basica: { nombre: "Arte Marcial Básica", caracteristica: "agi" },
-      },
-    });
-    expect(result.success).toBe(true);
+    assertValid(CombatRuleCatalogSchema.safeParse(validCombatCatalog));
   });
 
   it("fails when a required skill is missing", () => {
     const { habilidad_parada, ...rest } = validCombatCatalog;
-    expect(CombatCatalogSchema.safeParse(rest).success).toBe(false);
+    assertInvalid(CombatRuleCatalogSchema.safeParse(rest), "habilidad_parada is required");
   });
 
   it("fails when a definition has invalid caracteristica", () => {
-    const result = CombatCatalogSchema.safeParse({
-      ...validCombatCatalog,
-      habilidad_ataque: { nombre: "Ataque", caracteristica: "fuerza" },
-    });
-    expect(result.success).toBe(false);
+    assertInvalid(
+      CombatRuleCatalogSchema.safeParse({
+        ...validCombatCatalog,
+        habilidad_ataque: { nombre: "Ataque", caracteristica: "fuerza" },
+      }),
+      "caracteristica must be a valid characteristic key",
+    );
   });
 });

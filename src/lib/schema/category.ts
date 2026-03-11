@@ -1,34 +1,18 @@
 import { z } from "zod";
-import type { BasicCombatSkillKey } from "./combat";
-import { BasicCombatSkillCostSchema } from "./combat";
-import {
-  AtleticasGroupCostSchema,
-  SocialesGroupCostSchema,
-  PerceptivasGroupCostSchema,
-  IntelectualesGroupCostSchema,
-  VigorGroupCostSchema,
-  SubterfugioGroupCostSchema,
-  CreativasGroupCostSchema,
-} from "./secondary";
-import type { SecondaryGroupKey } from "./secondary";
+import { PDAttributeSchema } from "./attribute_type";
+import { BasicCombatEnum, CombatInvestmentSchema, CombatPDCostSchema } from "./combat";
+import { schemaFromEnum, uniqueValues } from "./helpers/utils";
+import { SecondaryAthleticsEnum, SecondaryCreativeEnum, SecondaryIntellectualEnum, SecondaryInvestmentSchema, SecondaryPDCostSchema, SecondaryPerceptiveEnum, SecondarySocialEnum, SecondarySubterfugeEnum, SecondaryVigorEnum } from "./secondary";
 
 // Shorthand validators
-const nonnegInt = z.number().int().nonnegative(); // turno, pv, bonificadores
-const posFrac   = z.number().min(0).max(1);       // limite_* (0.0 – 1.0)
+const positiveInt      = z.number().int().positive();
+const nonNegativeInt   = z.number().int().nonnegative();
+const positiveFraction = z.number().min(0).max(1);
 
 // ---------------------------------------------------------------------------
-// Archetype enum
-// Used to determine PD costs when multiclassing.
-// A category may belong to 0, 1, or 2 archetypes.
-//
-//   Luchador  — martial combat focused
-//   Domine    — ki/martial arts focused
-//   Acechador — stealth and subterfuge focused
-//   Místico   — magic focused
-//   Psíquico  — psychic focused
+// Enums
 // ---------------------------------------------------------------------------
-
-export const ArquetipoEnum = z.enum([
+export const ArchetypeEnum = z.enum([
   "Luchador",
   "Domine",
   "Acechador",
@@ -36,57 +20,65 @@ export const ArquetipoEnum = z.enum([
   "Psíquico",
 ]);
 
-export type Arquetipo = z.infer<typeof ArquetipoEnum>;
+// ---------------------------------------------------------------------------
+// Character category (class)
+// Each category owns its PD investments.
+// ---------------------------------------------------------------------------
+export const CategoryInvestmentSchema = z.object({
+  /** Category name (e.g. "Guerrero", "Acróbata"). */
+  nombre:         z.string(),
+  /** Character level within this category. Must be at least 1. */
+  nivel:          positiveInt,
+  /** Primary combat skills with their PD investments. */
+  combate:        CombatInvestmentSchema,
+  /** Secondary skills with their PD investments, grouped by type. */
+  secundarias:    SecondaryInvestmentSchema,
+  /** Life points, have a base derived value + PD investment. */
+  puntos_de_vida: PDAttributeSchema,
+});
 
 // ---------------------------------------------------------------------------
 // Category definition schema
 // ---------------------------------------------------------------------------
-
-export const CategoryDefinitionSchema = z.object({
-  /** Archetype tags used to compute multiclass costs. Empty array = no archetype. */
-  arquetipos:        z.array(ArquetipoEnum),
+export const CategoryRuleDefinitionSchema = z.object({
+  /** Archetype tags used to compute multiclass costs. Empty array = no archetype. No duplicates */
+  arquetipos: z.array(ArchetypeEnum).refine(uniqueValues(),
+    { message: "arquetipos must not contain duplicates" },
+  ),
   /** PD cost to buy additional HP multiples. */
-  coste_multiplo_pv: z.number().int().positive(),
+  coste_multiplo_pv: positiveInt,
   /** Bonus HP gained on every level up. */
-  pv:                nonnegInt,
+  pv:                nonNegativeInt,
   /** Bonus added to turno on every level up. */
-  turno:             nonnegInt,
+  turno:             nonNegativeInt,
   /** Max fraction of PD spendable on combat skills (0.0 – 1.0). */
-  limite_combate:    posFrac,
+  limite_combate:    positiveFraction,
   /** Max fraction of PD spendable on magic skills (0.0 – 1.0). */
-  limite_magia:      posFrac,
+  limite_magia:      positiveFraction,
   /** Max fraction of PD spendable on psychic skills (0.0 – 1.0). */
-  limite_psi:        posFrac,
-  /** PD costs for basic combat skills. Keys validated against BasicCombatSkillKeyEnum. */
-  combate: z.object({
-    habilidad_ataque:  BasicCombatSkillCostSchema,
-    habilidad_parada:  BasicCombatSkillCostSchema,
-    habilidad_esquiva: BasicCombatSkillCostSchema,
-    llevar_armadura:   BasicCombatSkillCostSchema,
-  } satisfies Record<BasicCombatSkillKey, z.ZodTypeAny>),
-  /** PD costs for secondary skills. Keys validated against SecondaryGroupKeyEnum.
-   *  Override keys within each group are validated against that group's skill key enum. */
-  secundarias: z.object({
-    atleticas:     AtleticasGroupCostSchema,
-    sociales:      SocialesGroupCostSchema,
-    perceptivas:   PerceptivasGroupCostSchema,
-    intelectuales: IntelectualesGroupCostSchema,
-    vigor:         VigorGroupCostSchema,
-    subterfugio:   SubterfugioGroupCostSchema,
-    creativas:     CreativasGroupCostSchema,
-  } satisfies Record<SecondaryGroupKey, z.ZodTypeAny>),
+  limite_psi:        positiveFraction,
+  /** PD costs for combat skills. */
+  combate:           CombatPDCostSchema,
+  /** PD costs for secondary skills. */
+  secundarias:       SecondaryPDCostSchema,
   /** Skill points granted automatically on every level up, split by domain. */
   bonificadores_innatos: z.object({
     /** Combat skill bonuses (habilidad_ataque, habilidad_parada, etc.). */
-    primarias:   z.record(z.string(), nonnegInt),
+    primarias: z.object({
+      ...schemaFromEnum(BasicCombatEnum, nonNegativeInt).shape,
+    }).partial().strict(),
     /** Secondary skill bonuses. */
-    secundarias: z.record(z.string(), nonnegInt),
+    secundarias: z.object({
+      ...schemaFromEnum(SecondaryAthleticsEnum,    nonNegativeInt).shape,
+      ...schemaFromEnum(SecondarySocialEnum,       nonNegativeInt).shape,
+      ...schemaFromEnum(SecondaryPerceptiveEnum,   nonNegativeInt).shape,
+      ...schemaFromEnum(SecondaryIntellectualEnum, nonNegativeInt).shape,
+      ...schemaFromEnum(SecondaryVigorEnum,        nonNegativeInt).shape,
+      ...schemaFromEnum(SecondarySubterfugeEnum,   nonNegativeInt).shape,
+      ...schemaFromEnum(SecondaryCreativeEnum,     nonNegativeInt).shape,
+    }).partial().strict(),
   }),
 });
 
-export type CategoryDefinition = z.infer<typeof CategoryDefinitionSchema>;
-export type CategoryDefinitionInput = z.input<typeof CategoryDefinitionSchema>;
-
-export const AllCategoryDefinitionSchema = z.record(z.string(), CategoryDefinitionSchema);
-export type AllCategoryDefinition = z.infer<typeof AllCategoryDefinitionSchema>;
+export const AllCategoryDefinitionSchema = z.record(z.string(), CategoryRuleDefinitionSchema);
 export type AllCategoryDefinitionInput = z.input<typeof AllCategoryDefinitionSchema>;

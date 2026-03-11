@@ -1,11 +1,10 @@
-import type { CombatCatalogInput } from "../schema/combat";
-import type { SecondaryCatalogInput } from "../schema/secondary";
+import type { CombatRuleCatalog } from "$lib/schema/combat";
+import type { SecondaryRuleCatalogInput } from "$lib/schema/secondary";
 
 // ---------------------------------------------------------------------------
 // Default combat catalog — official Anima: Beyond Fantasy base rules.
 // ---------------------------------------------------------------------------
-
-export const defaultCombatCatalog: CombatCatalogInput = {
+export const defaultCombatCatalog: CombatRuleCatalog = {
   habilidad_ataque:  { nombre: "Habilidad de Ataque",  caracteristica: "des" },
   habilidad_parada:  { nombre: "Habilidad de Parada",  caracteristica: "des" },
   habilidad_esquiva: { nombre: "Habilidad de Esquiva", caracteristica: "agi" },
@@ -17,16 +16,15 @@ export const defaultCombatCatalog: CombatCatalogInput = {
 // Fields with default values (conocimiento: false, penalizador_armadura: "ninguno")
 // are omitted for brevity.
 // ---------------------------------------------------------------------------
-
-export const defaultSecondaryCatalog: SecondaryCatalogInput = {
+export const defaultSecondaryCatalog: SecondaryRuleCatalogInput = {
   atleticas: {
-    acrobacias: { nombre: "Acrobacias", caracteristica: "agi", penalizador_armadura: "reducible"             },
-    atletismo:  { nombre: "Atletismo",  caracteristica: "agi", penalizador_armadura: "reducible"             },
-    montar:     { nombre: "Montar",     caracteristica: "agi"                                                },
-    nadar:      { nombre: "Nadar",      caracteristica: "agi", penalizador_armadura: "no_reducible"          },
-    trepar:     { nombre: "Trepar",     caracteristica: "agi", penalizador_armadura: "reducible"             },
-    saltar:     { nombre: "Saltar",     caracteristica: "fue", penalizador_armadura: "reducible"             },
-    pilotar:    { nombre: "Pilotar",    caracteristica: "des"                                                },
+    acrobacias: { nombre: "Acrobacias", caracteristica: "agi", penalizador_armadura: "reducible"    },
+    atletismo:  { nombre: "Atletismo",  caracteristica: "agi", penalizador_armadura: "reducible"    },
+    montar:     { nombre: "Montar",     caracteristica: "agi"                                       },
+    nadar:      { nombre: "Nadar",      caracteristica: "agi", penalizador_armadura: "no_reducible" },
+    trepar:     { nombre: "Trepar",     caracteristica: "agi", penalizador_armadura: "reducible"    },
+    saltar:     { nombre: "Saltar",     caracteristica: "fue", penalizador_armadura: "reducible"    },
+    pilotar:    { nombre: "Pilotar",    caracteristica: "des"                                       },
   },
   sociales: {
     estilo:     { nombre: "Estilo",     caracteristica: "pod" },

@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { CategoryDefinitionSchema } from "../../../src/lib/schema/category";
+import { describe, it } from "vitest";
+import { CategoryRuleDefinitionSchema } from "$lib/schema/category";
+import { assertValid, assertInvalid } from "../helpers/test-helpers";
 
 // ---------------------------------------------------------------------------
 // Test fixtures
@@ -40,141 +41,196 @@ const validCategory = {
 
 describe("CategoryDefinitionSchema", () => {
   it("accepts a valid category", () => {
-    const result = CategoryDefinitionSchema.safeParse(validCategory);
-    expect(result.success).toBe(true);
+    assertValid(CategoryRuleDefinitionSchema.safeParse(validCategory));
   });
 
   it("accepts empty arquetipos array", () => {
-    const result = CategoryDefinitionSchema.safeParse({ ...validCategory, arquetipos: [] });
-    expect(result.success).toBe(true);
+    assertValid(CategoryRuleDefinitionSchema.safeParse({ ...validCategory, arquetipos: [] }));
   });
 
   it("accepts multiple arquetipos", () => {
-    const result = CategoryDefinitionSchema.safeParse({ ...validCategory, arquetipos: ["Luchador", "Místico"] });
-    expect(result.success).toBe(true);
+    assertValid(CategoryRuleDefinitionSchema.safeParse({ ...validCategory, arquetipos: ["Luchador", "Místico"] }));
+  });
+
+  it("fails when arquetipos contains duplicates", () => {
+    assertInvalid(
+      CategoryRuleDefinitionSchema.safeParse({ ...validCategory, arquetipos: ["Luchador", "Luchador"] }),
+      "arquetipos must not contain duplicates",
+    );
   });
 
   it("fails with unknown arquetipo", () => {
-    const result = CategoryDefinitionSchema.safeParse({ ...validCategory, arquetipos: ["Desconocido"] });
-    expect(result.success).toBe(false);
+    assertInvalid(
+      CategoryRuleDefinitionSchema.safeParse({ ...validCategory, arquetipos: ["Desconocido"] }),
+      "arquetipo must be a valid ArquetipoEnum value",
+    );
   });
 
   it("fails when turno is negative", () => {
-    const result = CategoryDefinitionSchema.safeParse({ ...validCategory, turno: -1 });
-    expect(result.success).toBe(false);
+    assertInvalid(
+      CategoryRuleDefinitionSchema.safeParse({ ...validCategory, turno: -1 }),
+      "turno must be non-negative",
+    );
   });
 
   it("fails when turno is not an integer", () => {
-    const result = CategoryDefinitionSchema.safeParse({ ...validCategory, turno: 5.5 });
-    expect(result.success).toBe(false);
+    assertInvalid(
+      CategoryRuleDefinitionSchema.safeParse({ ...validCategory, turno: 5.5 }),
+      "turno must be an integer",
+    );
   });
 
   it("accepts turno of zero", () => {
-    const result = CategoryDefinitionSchema.safeParse({ ...validCategory, turno: 0 });
-    expect(result.success).toBe(true);
+    assertValid(CategoryRuleDefinitionSchema.safeParse({ ...validCategory, turno: 0 }));
   });
 
   it("fails when pv is negative", () => {
-    const result = CategoryDefinitionSchema.safeParse({ ...validCategory, pv: -1 });
-    expect(result.success).toBe(false);
+    assertInvalid(
+      CategoryRuleDefinitionSchema.safeParse({ ...validCategory, pv: -1 }),
+      "pv must be non-negative",
+    );
   });
 
   it("fails when coste_multiplo_pv is zero", () => {
-    const result = CategoryDefinitionSchema.safeParse({ ...validCategory, coste_multiplo_pv: 0 });
-    expect(result.success).toBe(false);
+    assertInvalid(
+      CategoryRuleDefinitionSchema.safeParse({ ...validCategory, coste_multiplo_pv: 0 }),
+      "coste_multiplo_pv must be positive",
+    );
   });
 
   it("fails when coste_multiplo_pv is negative", () => {
-    const result = CategoryDefinitionSchema.safeParse({ ...validCategory, coste_multiplo_pv: -5 });
-    expect(result.success).toBe(false);
+    assertInvalid(
+      CategoryRuleDefinitionSchema.safeParse({ ...validCategory, coste_multiplo_pv: -5 }),
+      "coste_multiplo_pv must be positive",
+    );
   });
 
   it("fails when limite_combate exceeds 1", () => {
-    const result = CategoryDefinitionSchema.safeParse({ ...validCategory, limite_combate: 1.1 });
-    expect(result.success).toBe(false);
+    assertInvalid(
+      CategoryRuleDefinitionSchema.safeParse({ ...validCategory, limite_combate: 1.1 }),
+      "limite_combate must be <= 1",
+    );
   });
 
   it("fails when limite_magia is negative", () => {
-    const result = CategoryDefinitionSchema.safeParse({ ...validCategory, limite_magia: -0.1 });
-    expect(result.success).toBe(false);
+    assertInvalid(
+      CategoryRuleDefinitionSchema.safeParse({ ...validCategory, limite_magia: -0.1 }),
+      "limite_magia must be >= 0",
+    );
   });
 
   it("fails when a combat cost is zero", () => {
-    const result = CategoryDefinitionSchema.safeParse({
-      ...validCategory,
-      combate: { ...validCategory.combate, habilidad_ataque: 0 },
-    });
-    expect(result.success).toBe(false);
+    assertInvalid(
+      CategoryRuleDefinitionSchema.safeParse({
+        ...validCategory,
+        combate: { ...validCategory.combate, habilidad_ataque: 0 },
+      }),
+      "combat skill cost must be positive",
+    );
   });
 
   it("fails when a combat cost is negative", () => {
-    const result = CategoryDefinitionSchema.safeParse({
-      ...validCategory,
-      combate: { ...validCategory.combate, llevar_armadura: -1 },
-    });
-    expect(result.success).toBe(false);
+    assertInvalid(
+      CategoryRuleDefinitionSchema.safeParse({
+        ...validCategory,
+        combate: { ...validCategory.combate, llevar_armadura: -1 },
+      }),
+      "combat skill cost must be positive",
+    );
   });
 
   it("fails when a secondary group coste is zero", () => {
-    const result = CategoryDefinitionSchema.safeParse({
-      ...validCategory,
-      secundarias: { ...validCategory.secundarias, atleticas: { coste: 0 } },
-    });
-    expect(result.success).toBe(false);
+    assertInvalid(
+      CategoryRuleDefinitionSchema.safeParse({
+        ...validCategory,
+        secundarias: { ...validCategory.secundarias, atleticas: { coste: 0 } },
+      }),
+      "secondary group coste must be positive",
+    );
   });
 
-  it("accepts secondary group with valid overrides", () => {
-    const result = CategoryDefinitionSchema.safeParse({
+  it("accepts secondary group with valid sobreescribe", () => {
+    assertValid(CategoryRuleDefinitionSchema.safeParse({
       ...validCategory,
       secundarias: {
         ...validCategory.secundarias,
-        vigor: { coste: 2, overrides: { p_fuerza: 1, res_dolor: 3 } },
+        vigor: { coste: 2, sobreescribe: { p_fuerza: 1, res_dolor: 3 } },
       },
-    });
-    expect(result.success).toBe(true);
+    }));
   });
 
   it("fails when an override cost is zero", () => {
-    const result = CategoryDefinitionSchema.safeParse({
-      ...validCategory,
-      secundarias: {
-        ...validCategory.secundarias,
-        vigor: { coste: 2, overrides: { p_fuerza: 0 } },
-      },
-    });
-    expect(result.success).toBe(false);
+    assertInvalid(
+      CategoryRuleDefinitionSchema.safeParse({
+        ...validCategory,
+        secundarias: {
+          ...validCategory.secundarias,
+          vigor: { coste: 2, sobreescribe: { p_fuerza: 0 } },
+        },
+      }),
+      "override cost must be positive",
+    );
   });
 
   it("fails when an override key does not belong to its group", () => {
-    const result = CategoryDefinitionSchema.safeParse({
-      ...validCategory,
-      secundarias: {
-        ...validCategory.secundarias,
-        vigor: { coste: 2, overrides: { acrobacias: 1 } }, // acrobacias is atleticas, not vigor
-      },
-    });
-    expect(result.success).toBe(false);
+    assertInvalid(
+      CategoryRuleDefinitionSchema.safeParse({
+        ...validCategory,
+        secundarias: {
+          ...validCategory.secundarias,
+          vigor: { coste: 2, sobreescribe: { acrobacias: 1 } }, // acrobacias belongs to atleticas
+        },
+      }),
+      "acrobacias does not belong to vigor group",
+    );
   });
 
   it("accepts bonificadores_innatos with values", () => {
-    const result = CategoryDefinitionSchema.safeParse({
+    assertValid(CategoryRuleDefinitionSchema.safeParse({
       ...validCategory,
       bonificadores_innatos: {
         primarias:   { habilidad_ataque: 5 },
         secundarias: { acrobacias: 10, saltar: 10 },
       },
-    });
-    expect(result.success).toBe(true);
+    }));
+  });
+
+  it("fails when a bonificador is not a valid primarias skill", () => {
+    assertInvalid(
+      CategoryRuleDefinitionSchema.safeParse({
+        ...validCategory,
+        bonificadores_innatos: {
+          primarias:   { otro: 2 },
+          secundarias: {  },
+        },
+      }),
+      "otro is not a valid member of primarias",
+    );
+  });
+
+  it("fails when a bonificador is not a valid secundarias skill", () => {
+    assertInvalid(
+      CategoryRuleDefinitionSchema.safeParse({
+        ...validCategory,
+        bonificadores_innatos: {
+          primarias:   {  },
+          secundarias: { otro: 2 },
+        },
+      }),
+      "otro is not a valid member of secundarias",
+    );
   });
 
   it("fails when a bonificador is negative", () => {
-    const result = CategoryDefinitionSchema.safeParse({
-      ...validCategory,
-      bonificadores_innatos: {
-        primarias:   {},
-        secundarias: { acrobacias: -5 },
-      },
-    });
-    expect(result.success).toBe(false);
+    assertInvalid(
+      CategoryRuleDefinitionSchema.safeParse({
+        ...validCategory,
+        bonificadores_innatos: {
+          primarias:   {},
+          secundarias: { acrobacias: -5 },
+        },
+      }),
+      "bonificador must be non-negative",
+    );
   });
 });
