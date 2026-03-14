@@ -11,9 +11,9 @@ Before running the project, ensure you have the following installed:
 
 | Tool | Version | Link |
 |---|---|---|
-| Rust & Cargo | 1.70+ | https://rustup.rs |
-| Node.js | 20+ | https://nodejs.org |
-| npm | 9+ | Included with Node.js |
+| Rust & Cargo | 1.94+ | https://rustup.rs |
+| Node.js | 24+ | https://nodejs.org |
+| npm | 11+ | Included with Node.js |
 
 On Windows, also ensure you have:
 - [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) — select "Desktop development with C++"
@@ -55,7 +55,6 @@ The output artifacts will be located in `src-tauri/target/release/bundle/`:
 
 | Platform | Artifact |
 |---|---|
-| Windows (MSI) | `msi/anima-codex_0.1.0_x64_en-US.msi` |
 | Windows (NSIS) | `nsis/anima-codex_0.1.0_x64-setup.exe` |
 
 > **Note:** Linux and macOS builds will be added when the CI/CD pipeline is configured (US-32).
@@ -68,12 +67,17 @@ anima-codex/
 ├── docs/                   # Project documentation
 │   ├── requirements.md
 │   ├── architecture.md
-│   └── tasking.md
+│   ├── tasking.md
+│   └── pseudo_schema_acx.md  # Normative .acx file format reference
 ├── examples/               # .acx example files
 ├── src/                    # Frontend (SvelteKit + TypeScript)
-│   ├── lib/                # (pending — US-03 onwards)
+│   ├── lib/
 │   │   ├── engine/         # Rules engine — no UI dependencies
 │   │   ├── schema/         # Zod schemas and inferred types
+│   │   │   ├── common/     # Primitives shared by acx & catalog
+│   │   │   ├── acx/        # Character file (.acx) schemas
+│   │   │   └── catalog/    # Catalog validation contracts (base & custom)
+│   │   ├── data/           # Default official content (satisfies catalog schemas)
 │   │   ├── stores/         # Svelte reactive stores
 │   │   └── i18n/           # Localisation files
 │   ├── components/         # (pending — US-16 onwards)
@@ -89,13 +93,12 @@ anima-codex/
 │   ├── capabilities/       # Tauri permission declarations
 │   ├── icons/              # Application icons
 │   └── tauri.conf.json
-├── data/                   # (pending — US-05) Base game content catalogs
-│   └── rules/              # Computation rules and lookup tables
+├── tests/                  # Unit tests (Vitest)
+│   └── lib/
+│       ├── schema/         # Schema validation tests
+│       └── data/           # Default catalog integrity tests
 ├── tools/                  # (pending — backlog) Standalone utilities
 │   └── xlsx-migrator/
-├── tests/                  # (pending — US-03) Unit tests
-│   ├── engine/
-│   └── schema/
 └── static/                 # Static assets
 ```
 
@@ -105,6 +108,7 @@ anima-codex/
 
 - [Requirements](docs/requirements.md)
 - [Architecture](docs/architecture.md)
+- [.acx File Format](docs/pseudo_schema_acx.md)
 
 ---
 

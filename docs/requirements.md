@@ -1,6 +1,6 @@
 # Requirements Specification: Anima Beyond Fantasy — Character Sheet App
-**Version:** 2.0
-**Status:** Draft under review
+**Version:** 3.0
+**Status:** Active
 
 ---
 
@@ -23,17 +23,34 @@ The application will be designed with a **clearly separated two-layer architectu
 
 ### 1.1 First Release Scope
 
-**Included:**
-- Basic character sheet concept: character identity, primary characteristics, derived secondary values, and free-text fields.
-- Reactive computation engine for values derived from primary characteristics.
+The `.acx` schema covers all game subsystems (combat, magic, ki, psychic) from
+the start. This is intentional — defining the full data shape upfront avoids
+costly migrations later. However, **full subsystem support requires three layers**:
+schema, catalogs, and engine. The first release implements all three layers only
+for the core subsystems.
+
+| Subsystem | Schema | Catalogs | Engine | First release |
+|---|---|---|---|---|
+| Primary characteristics | ✅ | ✅ | ✅ | ✅ |
+| Secondary abilities | ✅ | ✅ | ✅ | ✅ |
+| Basic combat | ✅ | ✅ | ✅ | ✅ |
+| Ki | ✅ | ⏳ | ⏳ | ❌ |
+| Magic | ✅ | ⏳ | ⏳ | ❌ |
+| Psychic | ✅ | ⏳ | ⏳ | ❌ |
+
+**Included in first release:**
+- Complete `.acx` schema covering all subsystems.
+- Character identity, primary characteristics, derived secondary values, and free-text fields.
+- Reactive computation engine for core subsystems (characteristics, secondary abilities, combat).
 - Character file management (create, open, save).
 - PDF export / print view.
+- Base catalogs for core subsystems.
 
-**Explicitly excluded (future backlog):**
-- Combat subsystem (turns, maneuvers, damage tables).
-- Magic subsystem (Zeon, casting, spell management).
-- Ki and Ki Techniques subsystem.
-- Psychic Powers.
+**Explicitly excluded (future backlog — catalogs and engine only):**
+- Combat subsystem: turns, maneuvers, damage tables.
+- Magic subsystem: Zeon, casting, spell management, mystic catalogs.
+- Ki subsystem: ki techniques, accumulation, martial arts catalogs.
+- Psychic subsystem: CV management, psychic power catalogs.
 - Migration tool from legacy `.xlsx` format.
 - Campaign or session management (multiple characters, game notes).
 - Multiplayer or cloud synchronization.
@@ -53,9 +70,10 @@ The application will be designed with a **clearly separated two-layer architectu
 
 ### 3.1 Storage Format
 
-- **[MUST]** All character data shall be stored in a plain-text format readable by both humans and machines (JSON or YAML).
+- **[MUST]** All character data shall be stored in JSON format, readable by both humans and machines.
 - **[MUST]** The use of binary or proprietary formats for primary storage is prohibited.
-- **[MUST]** The character data schema shall be formally defined and versioned, so that the application can detect and reject files with an incompatible format.
+- **[MUST]** JSON files shall always be pretty-printed (2-space indentation) to maximise human readability.
+- **[MUST]** The character data schema shall be formally defined and versioned via `metadata.version_schema`, so that the application can detect and reject files with an incompatible format.
 - **[SHOULD]** When loading a file, the application shall validate its structure against the defined schema and display a descriptive error if the file is malformed, instead of producing a silent failure or crash.
 
 ### 3.2 Migration from Legacy Format (Out of Scope — First Phase)
@@ -81,20 +99,21 @@ The application will be designed with a **clearly separated two-layer architectu
 
 ### 4.2 Character Sheet Content (First Scope)
 
-- **[MUST]** The sheet shall capture character identity data: name, race, class, level, and other basic descriptive fields.
+- **[MUST]** The sheet shall capture character identity data: name, race, being type, gnosis, and descriptive fields (age, sex, height, weight, region, social class, background, images).
 - **[MUST]** The sheet shall include the eight Primary Characteristics of Anima (Agility, Constitution, Dexterity, Strength, Intelligence, Perception, Power, Willpower).
 - **[MUST]** The sheet shall automatically calculate and display secondary values derived from the Primary Characteristics (Characteristic Modifier, Movement, Initiative, etc.), respecting Anima's specific rounding rules.
-- **[MUST]** The sheet shall include the selection of a category from all available options.
+- **[MUST]** The sheet shall support multiclass characters — a character may belong to one or more categories simultaneously, each with its own PD investment.
+- **[MUST]** The sheet shall include the selection of one or more categories from all available options.
 - **[MUST]** The sheet shall include a section for Secondary Abilities and Primary Combat Abilities, accounting for Development Points (DP) and the costs per category.
-- **[MUST]** The sheet shall include free-text fields for Background, Character History, and images.
+- **[MUST]** The sheet shall include free-text fields for background and notes, and support attaching multiple image files via relative path references.
 - **[SHOULD]** Long-form text fields shall support basic Markdown formatting (bold, italic, lists).
-- **[WON'T]** This version shall not include sections for Mystical or Psychic Primary Abilities, nor any game subsystem (Magic, Ki, Psychic, etc.).
+- **[WON'T]** This version shall not include engine support for Magic, Ki, or Psychic subsystems. The schema accommodates these fields, but computed values and catalog validation for these subsystems are deferred.
 
 ### 4.3 Reactive Computation Engine
 
 - **[MUST]** Any change to a Primary Characteristic or a Primary or Secondary Ability shall trigger the immediate and visible recalculation of all dependent values, without requiring any additional action from the user.
 - **[MUST]** The engine shall support lookups against predefined value tables (e.g. Resistance tables based on Presence).
-- **[MUST]** Computation formulas shall not be embedded in the application code; they shall reside in external rules files (see section 5).
+- **[MUST]** Computation formulas are implemented as pure TypeScript functions within the engine module. They are not embedded in UI components and have no dependencies on the presentation layer.
 - **[MUST]** Every attribute on the character sheet (primary characteristics, primary and secondary abilities, and derived values such as Initiative or Regeneration) shall be represented as a composite value with three distinct layers:
   1. **Base value** — the raw value assigned to the character.
   2. **Base modifiers** — an array of permanent bonuses or penalties applied on top of the base value. Each entry carries a numeric value (positive or negative), an engine-generated or player-defined source identifier, and an optional human-readable descriptor. These modifiers are counted when evaluating attribute requirements.
@@ -102,6 +121,7 @@ The application will be designed with a **clearly separated two-layer architectu
 - **[MUST]** Modifiers may be automatic (computed and managed by the rules engine based on other sheet values) or manual (explicitly created, edited, and deleted by the player). Automatic modifiers shall be read-only from the user's perspective.
 - **[MUST]** The effective displayed value of any attribute shall be `base + sum(base_modifiers) + sum(temporary_modifiers)`. The value used for requirement evaluation shall be `base + sum(base_modifiers)`.
 - **[SHOULD]** Any attribute may be explicitly marked as exempt from this composite model and treated as a simple scalar value, where the added complexity provides no benefit.
+- **[WON'T]** Computation formulas shall not be exposed for modification via external files in this version. This capability will be evaluated in a future iteration once an adequate validation mechanism is defined.
 
 ### 4.4 Input Validation
 
@@ -113,12 +133,16 @@ The application will be designed with a **clearly separated two-layer architectu
 
 ## 5. Extensibility & Custom Content Support
 
-- **[MUST]** Game content catalogs (weapons, spells, Ki techniques, secondary abilities, etc.) shall reside in external data files with a documented format, completely separate from the application code.
-- **[MUST]** The application shall load a set of base catalogs on startup, representing the official *Anima: Beyond Fantasy* content.
-- **[MUST]** The catalog file format shall be documented sufficiently for a user with basic JSON/YAML knowledge to add new entries (e.g. a homebrew weapon, a custom spell) without modifying the source code.
-- **[SHOULD]** The user shall be able to specify a custom content directory. Files in that directory shall extend or override individual entries in the base catalogs by identifier, without replacing the entire catalog.
+- **[MUST]** Game content catalogs (weapons, spells, Ki techniques, secondary abilities, categories, etc.) shall reside in TypeScript data modules bundled with the application, completely separate from engine logic.
+- **[MUST]** The application shall load base catalogs on startup, representing the official *Anima: Beyond Fantasy* content.
+- **[MUST]** The catalog format shall be documented sufficiently for an external contributor to add new entries (e.g. a homebrew weapon, a custom category) without modifying engine or UI code.
+- **[MUST]** The application shall support three catalog layers with the following precedence (highest wins on key collision):
+  1. **`catalogo_local`** — embedded in the `.acx` file; applies only to that character. Intended for character-specific content (bespoke weapons, custom ki techniques). Loaded when the character is opened.
+  2. **Persistent custom catalogs** — loaded from a default directory at startup. Intended for campaign-level content shared across characters (homebrew categories, custom magic vias). Path may be overridden via Settings.
+  3. **Base catalogs** — bundled with the application as TypeScript modules. Always present; cannot be removed.
+- **[SHOULD]** The user shall be able to specify a custom content directory. Files in that directory shall extend or override individual entries in the base catalogs by identifier.
 - **[SHOULD]** The application shall validate custom content files against the defined catalog schema upon loading, reporting descriptive errors if an entry is malformed.
-- **[COULD]** The application shall offer a basic visual interface to browse loaded content (base and custom) and detect identifier conflicts.
+- **[COULD]** The application shall offer a basic visual interface to browse loaded content (base and custom), create new catalog entries, and detect identifier conflicts.
 - **[WON'T]** This version shall not expose modification of the computation engine formulas (e.g. Initiative calculation or derivation tables) via external files. This capability will be evaluated in future iterations once an adequate validation mechanism is defined.
 
 ---

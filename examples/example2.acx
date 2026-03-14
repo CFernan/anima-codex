@@ -1,0 +1,30 @@
+{
+  "metadata": {
+    "version_schema":  "1.0",
+    "marca_de_tiempo": "2026-03-14T10:00:00Z",
+    "jugador":         "Juan"
+  },
+  "input": {
+    "nombre": "Kael",
+    "raza":   { "nombre": "Sylvain" },
+    "caracteristicas_primarias": {
+      "agi": {
+        "base": 10,
+        "modificadores_base": [
+          {
+            "valor":      1,
+            "fuente":     "Bendición divina",
+            "descripcion": "Bendición permanente recibida por la Beryl Gabriel"
+          }
+        ],
+        "modificadores_temporales": []
+      }
+    },
+    "caracteristicas_del_ser": {
+      "tipo":   { "nombre": "Natural" },
+      "gnosis": 10
+    },
+    "estado": { "pv": 120, "cansancio": 0 }
+  },
+  "catalogo_local": { }
+}

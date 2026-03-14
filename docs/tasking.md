@@ -1,7 +1,7 @@
 # Tasking: Anima Beyond Fantasy — Character Sheet App
-**Version:** 1.1
+**Version:** 1.2
 **Status:** In Progress
-**Related to:** Requirements v2.0 · Architecture v1.1
+**Related to:** Requirements v3.0 · Architecture v1.3
 
 ---
 
@@ -29,16 +29,15 @@ Each user story follows this structure:
 
 - ✅ US-01  Project bootstrap
 - ✅ US-02  File extension registration
-- ✅ US-03  Character schema definition
-- ✅ US-04  Catalog schema definition
-- 🔄 US-05  Base content catalogs
-- 🔲 US-06  Derived stats rules files
+- 🔄 US-03  Character schema definition         ← superseded, see note
+- 🔲 US-04  Catalog schema definition            ← superseded, see note
+- ⏸ US-05  Base content catalogs
 - 🔲 US-07  Composite attribute resolution
 - 🔲 US-08  Primary characteristic modifier table
 - 🔲 US-09  Derived stat computation
 - 🔲 US-10  DP cost resolution
 - 🔲 US-11  Automatic modifier lifecycle
-- 🔲 US-27  English and Spanish UI          ← before any UI component
+- 🔲 US-27  English and Spanish UI              ← before any UI component
 - 🔲 US-18  Character store & reactive engine integration
 - 🔲 US-12  New character
 - 🔲 US-13  Open and save character files
@@ -50,7 +49,7 @@ Each user story follows this structure:
 - 🔲 US-19  Derived stats section
 - 🔲 US-20  Category selection & DP budget
 - 🔲 US-21  Secondary abilities & combat abilities
-- 🔲 US-22  Lore & free-text fields
+- 🔲 US-22  Description & free-text fields
 - 🔲 US-23  Numeric input validation
 - 🔲 US-25  Print view
 - 🔲 US-26  PDF export
@@ -146,74 +145,64 @@ for each operating system.
 
 ## Epic 2 — Data Layer
 
-### ✅ US-03 · Character schema definition
+### 🔄 US-03 · Character schema definition
 **As a** developer
 **I want** a formally defined and versioned character schema
 **so that** all character data has a guaranteed shape throughout the application.
+
+> **Note:** This US was completed under a previous design. The schema has since
+> been fully redesigned. The current implementation lives in `src/lib/schema/acx/`
+> and `src/lib/schema/common/` as documented in `docs/architecture.md` §5.1 and
+> the normative pseudo-schema in `docs/pseudo_schema_acx.md`. The acceptance
+> criteria below reflect the new design.
 
 **Priority:** MUST
 **Dependencies:** US-01
 
 **Acceptance Criteria:**
-- ✅ A `CharacterSchema` Zod object is defined in `src/lib/schema/character.ts`.
-- ✅ The schema includes a `schema_version` field.
-- ✅ The schema covers: identity fields, all eight primary characteristics,
-  secondary characteristics, resistances, combat skills, secondary skills,
-  hit points, fatigue, presence, creation points, and free-text fields.
-- ✅ All TypeScript types are inferred from the schema (`z.infer`), with no
-  manually duplicated type definitions.
-- ✅ Schema is split into focused modules: `enums.ts`, `attribute.ts`,
-  `combat.ts`, `secondary.ts`, `character.ts`.
-- ✅ Exported types: `AttributeModifier`, `Attribute`, `DirectAttribute`,
-  `PDAttribute`, `HybridAttribute`, `CharacteristicSkill`, `Character`,
-  `CharacterCategory`.
-- ✅ Unit tests in `tests/lib/schema/character.test.ts`.
+- `CharacterSchema` is defined in `src/lib/schema/acx/character.ts`.
+- The schema includes `metadata.version_schema`.
+- The schema structure matches `docs/pseudo_schema_acx.md` exactly.
+- Schemas are split across `src/lib/schema/common/` (shared primitives) and `src/lib/schema/acx/` (character file shape).
+- All TypeScript types are inferred from schemas (`z.infer`/`z.input`), with no manually duplicated type definitions.
+- Exported variable naming convention: uppercase first letter if exported, lowercase if not.
+- Unit tests cover
 
 **Technical Tasks:**
-- ✅ Implement `AttributeModifierSchema` (valor, fuente, descriptor?, automatico).
-- ✅ Implement attribute hierarchy: `AttributeSchema`, `DirectAttributeSchema`,
-  `DirectCharacteristicSkillSchema`, `PDAttributeSchema`,
-  `HybridAttributeSchema`, `PDCharacteristicSkillSchema`.
-- ✅ Implement `CharacterCategorySchema` (multi-class ready, owns PD investments
-  for combat, secondary skills and puntos_de_vida).
-- ✅ Implement `CharacterSchema` covering all fields in scope for first release.
-- ✅ Export all inferred types.
-- ✅ Write unit tests covering: valid character, missing required fields,
-  wrong types, negative values, custom skills, modifiers, and multi-class.
+- ✅ Define complete pseudo-schema of .acx format.
+- ✅ Implement pseudo-schema under stc/lib/schema/acx and stc/lib/schema/common for global usages.
+- 🔲 Write unit tests in `tests/lib/schema/acx` and `tests/lib/schema/common`.
 
 ---
 
-### ✅ US-04 · Catalog schema definition
+### 🔲 US-04 · Catalog schema definition
 **As a** developer
 **I want** formally defined schemas for game content catalogs
 **so that** base content and custom extensions can be validated consistently.
+
+> **Note:** This US was completed under a previous design. Catalog schemas are
+> now being redesigned to live in `src/lib/schema/catalog/` as documented in
+> `docs/architecture.md` §5.5. The old schemas in `src/lib/schema/` are
+> superseded. Tasks below reflect the new design.
 
 **Priority:** MUST
 **Dependencies:** US-03
 
 **Acceptance Criteria:**
-- ✅ Catalog schemas are split by domain: `combat.ts` and `secondary.ts`
-  within `src/lib/schema/`.
-- ✅ `CombatCatalogSchema` defines static rules for all combat skills
-  (nombre, caracteristica). Extensible via optional `custom` record.
-- ✅ `SecondaryCatalogSchema` defines static rules for all secondary skills
-  grouped by type (nombre, caracteristica, conocimiento, penalizador_armadura).
-  Extensible via optional `custom` group.
-- ✅ `conocimiento` defaults to `false`, `penalizador_armadura` defaults to
-  `ninguno` — omitted in data files when default.
-- ✅ All catalog types are inferred from schemas (`z.infer`, `z.input`).
-- ✅ `PenalizadorArmaduraEnum` covers: ninguno, reducible,
-  reducible_hasta_mitad, no_reducible, percepcion.
+- Catalog schemas live in `src/lib/schema/catalog/`.
+- Schemas define validation contracts for both base and custom content — the same schema validates both.
+- Catalog schemas depend on `schema/common/` primitives but not on `schema/acx/`.
+- All types inferred from schemas with no manual duplication.
+- Unit tests cover
 
 **Technical Tasks:**
-- ✅ Implement `CombatSkillDefinitionSchema` and `CombatCatalogSchema` in `combat.ts`.
-- ✅ Implement `SecondarySkillDefinitionSchema` and `SecondaryCatalogSchema`
-  in `secondary.ts`.
-- ✅ Export inferred types and input types for all catalog schemas.
+- 🔲 Define complete pseudo-schema of catalogs format.
+- 🔲 Implement pseudo-schema under `src/lib/schema/catalog`. If needed, move common components from `src/lib/schema/acx` to `src/lib/schema/common`
+- 🔲 Write unit tests in `tests/lib/schema/catalog` and `tests/lib/schema/common`.
 
 ---
 
-### 🔄 US-05 · Base content catalogs
+### ⏸ US-05 · Base content catalogs
 **As a** developer
 **I want** the base game content available as validated data
 **so that** it is decoupled from application logic and can be extended.
@@ -222,50 +211,19 @@ for each operating system.
 **Dependencies:** US-04
 
 **Acceptance Criteria:**
-- ✅ `src/lib/data/defaultCatalog.ts` contains the full official Anima:
-  Beyond Fantasy catalog for combat and secondary skills.
-- ✅ `src/lib/data/defaultCategories.ts` contains all 20 official categories
-  with PD costs, overrides, limites, arquetipos, and bonificadores_innatos.
-- ✅ All entries validated against their schemas via unit tests.
-- 🔲 The application loads catalogs on startup and keeps them in a Svelte store.
-- 🔲 Missing or malformed catalogs are reported without crashing the app.
+- `src/lib/data/` contains the full official Anima: Beyond Fantasy base catalogs for combat skills, secondary skills, and categories.
+- All entries satisfy their catalog schemas via `satisfies z.input<typeof ...>`.
+- All entries validated against their schemas via unit tests.
+- The application initialises the catalog store at startup from bundled data — no disk read required for base content.
+- Missing or malformed catalog entries are reported without crashing the app.
 
 **Technical Tasks:**
-- ✅ Implement `defaultCombatCatalog` and `defaultSecondaryCatalog` in
-  `src/lib/data/defaultCatalog.ts`.
-- ✅ Implement `defaultCategories` in `src/lib/data/defaultCategories.ts`
-  with official PD costs, group/override structure, arquetipos (ArquetipoEnum),
-  and bonificadores_innatos split into primarias and secundarias.
-- ✅ Write unit tests in `tests/lib/data/defaultCatalog.test.ts` covering:
-  schema validation, default values, conocimiento flags, armor penalties,
-  and valid characteristics.
-- ✅ Write unit tests in `tests/lib/data/defaultCategories.test.ts` covering
-  structural invariants: group completeness, redundant overrides, duplicate
-  arquetipos, valid skill keys, override group membership, and bonificador
-  multiples.
-- 🔲 Implement catalog store in `src/lib/stores/catalogs.ts`.
-
----
-
-### 🔲 US-06 · Derived stats rules files
-**As a** developer  
-**I want** derived stat formulas and lookup tables to reside in external JSON files  
-**so that** the computation engine is not hard-coded and can be updated without recompiling.
-
-**Priority:** MUST  
-**Dependencies:** US-04
-
-**Acceptance Criteria:**
-- `data/rules/derived-stats.json` defines the formula for each derived stat in a structured, documented format.
-- `data/rules/resistance-tables.json` defines the resistance value table indexed by Presence.
-- The engine reads these files and applies them; no derived stat formula is hard-coded in TypeScript.
-
-**Technical Tasks:**
-- 🔲 Define the JSON structure for formula rules (e.g. `{ "stat": "initiative", "formula": "agility_mod + dexterity_mod + category_bonus" }`).
-- 🔲 Populate `data/rules/derived-stats.json` with all derived stats in scope.
-- 🔲 Populate `data/rules/resistance-tables.json`.
-- 🔲 Implement the rules loader in the catalog loading flow (US-05) to also load rules files.
-- 🔲 Document the rules file format in `docs/architecture.md` under a new "Rules File Format" subsection.
+- ⏸ Implement base combat and secondary skill catalogs in `src/lib/data/`.
+- ⏸ Implement base category catalog with all 20 official categories in `src/lib/data/`.
+- ⏸ Write unit tests covering schema validation and structural invariants.
+- 🔲 Implement `schema/catalog/` schemas (US-04) and apply `satisfies` to all data files.
+- 🔲 Implement catalog store in `src/lib/stores/catalogs.ts` initialised from bundled data.
+- 🔲 Handle malformed catalog entries gracefully — log error, continue loading remainder.
 
 ---
 
@@ -280,17 +238,17 @@ for each operating system.
 **Dependencies:** US-03
 
 **Acceptance Criteria:**
-- `effectiveValue(attr: Attribute): number` returns `base + sum(base_modifiers) + sum(temporary_modifiers)`.
-- `requirementValue(attr: Attribute): number` returns `base + sum(base_modifiers)`.
+- `effectiveValue(attr: FlexibleAttribute): number` returns `base + sum(modificadores_base) + sum(modificadores_temporales)`.
+- `requirementValue(attr: FlexibleAttribute): number` returns `base + sum(modificadores_base)`.
 - Both functions handle empty modifier arrays correctly.
 - Negative modifier values are supported.
+- `DerivedAttribute` (no base field) returns `sum(modifiers)` for effective value.
 
 **Technical Tasks:**
-- 🔲 Implement `effectiveValue` and `requirementValue` in `src/lib/engine/modifiers.ts`.
-- 🔲 Implement `addModifier(attr, modifier): Attribute` — returns a new attribute with the modifier appended to the appropriate array.
-- 🔲 Implement `removeModifier(attr, source): Attribute` — removes all modifiers with the given source identifier from both arrays.
-- 🔲 Implement `updateAutomaticModifiers(attr, source, value): Attribute` — upserts an automatic modifier for a given source.
-- 🔲 Write unit tests in `tests/engine/modifiers.test.ts` covering: effective vs. requirement value, add/remove/update operations, negative values, empty arrays.
+- 🔲 Implement `effectiveValue` and `requirementValue` in `src/lib/engine/attributes.ts`, handling all three attribute types (`DirectAttribute`, `PDAttribute`, `DerivedAttribute`).
+- 🔲 Implement `addModifier(attr, modifier, type: 'base' | 'temporal'): FlexibleAttribute`.
+- 🔲 Implement `removeModifier(attr, fuente): FlexibleAttribute` — removes all modifiers with the given source from both arrays.
+- 🔲 Write unit tests in `tests/engine/attributes.test.ts`.
 
 ---
 
@@ -304,13 +262,12 @@ for each operating system.
 
 **Acceptance Criteria:**
 - `characteristicModifier(value: number): number` returns the correct modifier for any valid characteristic value according to Anima's table.
-- The table is loaded from `data/rules/derived-stats.json`, not hard-coded.
+- The table is defined as a TypeScript constant in `src/lib/engine/tables.ts`, not read from an external file.
 - The function handles values at table boundaries correctly.
 
 **Technical Tasks:**
-- 🔲 Implement `characteristicModifier` in `src/lib/engine/tables.ts`.
-- 🔲 Implement the table lookup mechanism that reads from the loaded rules files.
-- 🔲 Write unit tests covering representative values and boundary cases.
+- 🔲 Implement `characteristicModifier` in `src/lib/engine/tables.ts` using a hardcoded lookup table.
+- 🔲 Write unit tests covering all representative values and boundary cases.
 
 ---
 
@@ -320,18 +277,19 @@ for each operating system.
 **so that** the UI can display them reactively.
 
 **Priority:** MUST  
-**Dependencies:** US-07, US-08, US-06
+**Dependencies:** US-07, US-08
 
 **Acceptance Criteria:**
-- The engine computes all derived stats in scope: Characteristic Modifiers, Movement, Initiative, all Resistance values, Life Points, and any other stats derived from primary characteristics.
+- The engine computes all derived stats in scope: Characteristic Modifiers, Movement, Initiative, all Resistance values, Life Points.
 - Derived stats use the **requirement value** (not the effective value) of primary characteristics as their input, unless a specific rule states otherwise.
 - All Anima-specific rounding rules are applied correctly.
 - Computed values are consistent with the reference `.xlsx` sheet for the same inputs.
+- `DerivedStats` is a TypeScript type in `src/lib/engine/types.ts` — not a Zod schema, as derived values are never persisted.
 
 **Technical Tasks:**
-- 🔲 Implement `computeDerivedStats(character: Character, rules: Rules): DerivedStats` in `src/lib/engine/formulas.ts`.
-- 🔲 Implement resistance table lookups in `src/lib/engine/tables.ts` using `data/rules/resistance-tables.json`.
-- 🔲 Define a `DerivedStats` type exported from the schema module.
+- 🔲 Define `DerivedStats` type in `src/lib/engine/types.ts`.
+- 🔲 Implement `computeDerivedStats(character: Character, catalogs: Catalogs): DerivedStats` in `src/lib/engine/formulas.ts`.
+- 🔲 Implement resistance table lookups in `src/lib/engine/tables.ts` as TypeScript constants.
 - 🔲 Write unit tests in `tests/engine/formulas.test.ts` covering each derived stat with known input/output pairs validated against the reference sheet.
 
 ---
@@ -346,37 +304,38 @@ for each operating system.
 
 **Acceptance Criteria:**
 - `dpCost(abilityId: string, categoryId: string, catalogs: Catalogs): number` returns the correct cost.
-- `totalDpSpent(character: Character, catalogs: Catalogs): number` returns the sum of all spent DP.
+- `totalDpSpent(character: Character, catalogs: Catalogs): number` returns the sum of all spent DP across all categories.
 - `remainingDp(character: Character, catalogs: Catalogs): number` returns available DP for the current level.
-- The engine uses catalog data for costs; no cost is hard-coded.
+- The engine reads costs from the catalog; no cost is hard-coded.
+- Multiclass characters compute DP correctly across all their categories.
 
 **Technical Tasks:**
 - 🔲 Implement the three functions in `src/lib/engine/dp.ts`.
-- 🔲 Define the DP budget per level in `data/categories.json` (already planned in US-05).
-- 🔲 Write unit tests in `tests/engine/dp.test.ts` covering: correct cost per category, total spent, remaining, edge case of zero-cost abilities.
+- 🔲 Write unit tests in `tests/engine/dp.test.ts` covering: correct cost per category, total spent across multiple categories, remaining DP, zero-cost abilities.
 
 ---
 
 ### 🔲 US-11 · Automatic modifier lifecycle
 **As a** developer  
-**I want** the engine to automatically generate and remove modifiers when their source values change  
+**I want** the engine to automatically compute and apply modifiers when their source values change  
 **so that** race bonuses, category bonuses, and similar effects are always in sync with the sheet.
 
 **Priority:** MUST  
 **Dependencies:** US-07, US-05
 
 **Acceptance Criteria:**
-- When the character's race changes, all automatic modifiers sourced from the previous race are removed and replaced with those from the new race.
-- When the character's category changes, all automatic modifiers sourced from the previous category are removed and replaced with those from the new category.
-- Manual modifiers are never removed or altered by the engine.
-- Automatic modifiers are marked `automatic: true` and are not editable by the user in the UI.
+- Race and category bonuses are computed from the catalog at runtime and never persisted in the `.acx` file.
+- When the character's race changes, all race-derived modifiers are recomputed from the new race's catalog entry.
+- When the character's category changes, all category-derived modifiers are recomputed.
+- Manual modifiers (stored in `modificadores_base` / `modificadores_temporales`) are never removed or altered by the engine.
+- The engine produces a complete modifier list by merging persisted manual modifiers with freshly computed automatic ones.
 
 **Technical Tasks:**
-- 🔲 Implement `applyRaceModifiers(character, raceId, catalogs): Character` in `src/lib/engine/modifiers.ts`.
-- 🔲 Implement `applyCategoryModifiers(character, categoryId, catalogs): Character` in `src/lib/engine/modifiers.ts`.
-- 🔲 Both functions call `updateAutomaticModifiers` (US-07) for each affected attribute.
-- 🔲 Wire these functions into the Svelte store (US-18) so they fire reactively on race/category change.
-- 🔲 Write unit tests covering: race change removes old and applies new modifiers, manual modifiers survive race/category changes.
+- 🔲 Implement `computeRaceModifiers(raceId: string, catalogs: Catalogs): AttributeModifier[]` in `src/lib/engine/modifiers.ts`.
+- 🔲 Implement `computeCategoryModifiers(categories: CategoriaInversion[], catalogs: Catalogs): AttributeModifier[]`.
+- 🔲 Implement `mergeModifiers(manual: AttributeModifier[], automatic: AttributeModifier[]): AttributeModifier[]`.
+- 🔲 Wire these functions into the derived store (US-18) so they are recomputed reactively.
+- 🔲 Write unit tests covering: correct bonus values per race/category, manual modifiers preserved, changes to race/category produce updated automatic modifiers.
 
 ---
 
@@ -418,16 +377,16 @@ for each operating system.
 - `File > Open` shows a native file picker filtered to `.acx` files.
 - After selection, the file is opened in a new tab. If already open, that tab is focused.
 - If the file is invalid, a descriptive error is shown and no new tab is opened.
-- `File > Save` writes the active tab's character state as JSON to its associated file path.
+- `File > Save` writes `metadata`, `entrada`, and `catalogo_local` as pretty-printed JSON (2-space indent) to the associated file path.
 - `File > Save As` shows a native save dialog and writes to the chosen path, updating the active tab's file path.
 - After a successful save, the active tab's unsaved changes indicator is cleared.
 - `Ctrl+S` triggers Save. `Ctrl+Shift+S` triggers Save As.
 
 **Technical Tasks:**
 - 🔲 Implement Tauri commands in `src-tauri/src/commands/file.rs`: `open_file_dialog`, `read_file`, `save_file_dialog`, `write_file`.
-- 🔲 Implement file loading logic: invoke `open_file_dialog`, read content, validate with Zod, invoke `openNewTab` or focus existing tab.
+- 🔲 Implement file loading logic: invoke `open_file_dialog`, read content, validate `entrada` with `CharacterSchema`, invoke `openNewTab` or focus existing tab.
 - 🔲 Implement duplicate detection: before opening, check if the file path is already present in any tab's `currentFilePath`.
-- 🔲 Implement file saving logic: serialise active tab's character state to JSON, invoke `write_file`, update tab's `currentFilePath` and `isDirty`.
+- 🔲 Implement file saving logic: serialise with `JSON.stringify(data, null, 2)`, invoke `write_file`, update tab's `currentFilePath` and `isDirty`.
 - 🔲 Implement keyboard shortcut handlers in the layout component.
 
 ---
@@ -492,16 +451,18 @@ for each operating system.
 **Dependencies:** US-03, US-05, US-18
 
 **Acceptance Criteria:**
-- The identity section displays: Name (text), Race (dropdown), Category (dropdown), Level (numeric).
-- Race and Category dropdowns are populated from the loaded catalogs.
-- Changing Race triggers automatic modifier updates (US-11) reactively.
-- Changing Category triggers automatic modifier updates (US-11) and DP recalculation (US-10) reactively.
+- The identity section displays: Name (text), Race (dropdown), Being Type (dropdown), Gnosis (numeric).
+- The description section displays all predefined fields (age, sex, height, weight, region, social class) plus background text and images.
+- Race dropdown is populated from the loaded catalog.
+- The character supports one or more categories — at least one is required.
+- Changing Race triggers automatic modifier recomputation (US-11) reactively.
 - All fields are bound bidirectionally to the character store.
 
 **Technical Tasks:**
-- 🔲 Implement `Identity.svelte` with the four fields.
-- 🔲 Implement `Dropdown.svelte` as a reusable component accepting an array of `{ id, name }` entries and emitting the selected `id`.
-- 🔲 Wire race and category changes to `applyRaceModifiers` and `applyCategoryModifiers` (US-11) via the character store.
+- 🔲 Implement `Identity.svelte` with all identity and description fields.
+- 🔲 Implement `Dropdown.svelte` as a reusable component accepting an array of `{ id, name }` entries.
+- 🔲 Implement image attachment via Tauri file dialog — stores relative path in `descripcion.imagenes`.
+- 🔲 Wire race change to `computeRaceModifiers` (US-11) via the character store.
 
 ---
 
@@ -607,40 +568,40 @@ for each operating system.
 **Dependencies:** US-10, US-18, US-20
 
 **Acceptance Criteria:**
-- All secondary abilities defined in `data/secondary-abilities.json` are displayed, grouped by category (e.g. Athletic, Social, Intellectual).
-- All Primary Combat Abilities (Attack, Block, Dodge, Wear Armor, Ki) are displayed.
-- For each ability, the following are displayed: base value, total effective value (with modifier breakdown), DP spent, DP cost for the current category.
-- The user can increase or decrease the base value of each ability; DP totals update reactively.
-- The composite attribute model (base + modifiers) applies to all abilities.
+- All secondary abilities from the loaded catalog are displayed, grouped by group (atleticas, sociales, perceptivas, intelectuales, vigor, subterfugio, creativas).
+- The four primary combat abilities (Attack, Block, Dodge, Wear Armor) are displayed.
+- For each ability, the following are displayed: base or pd value, total effective value (with modifier breakdown), DP spent, DP cost for the current category.
+- The user can increase or decrease the pd investment of each ability; DP totals update reactively.
+- The `FlexibleAttribute` model applies to all abilities — pd-based, direct, or derived depending on the catalog definition.
 - Manual modifiers can be added to any ability.
 
 **Technical Tasks:**
-- 🔲 Implement `Abilities.svelte` iterating over abilities grouped by type.
+- 🔲 Implement `Abilities.svelte` iterating over abilities grouped by catalog group.
 - 🔲 Reuse `NumericInput.svelte` and `ModifierList.svelte` from US-17.
-- 🔲 Implement ability update helpers in the character store (`setAbilityBase`, `addAbilityModifier`).
+- 🔲 Implement ability update helpers in the character store (`setAbilityPd`, `addAbilityModifier`).
 - 🔲 Derive ability effective values through the `derivedStats` store or a dedicated `abilityStats` derived store.
 
 ---
 
-### 🔲 US-22 · Lore & free-text fields
+### 🔲 US-22 · Description & free-text fields
 **As a** user  
-**I want** to write free-form text for my character's background and history, and attach an image  
+**I want** to write free-form text for my character's background and attach images  
 **so that** the sheet captures the narrative side of my character.
 
 **Priority:** MUST  
 **Dependencies:** US-18
 
 **Acceptance Criteria:**
-- The Lore section includes two long-form text fields: Background and Character History.
-- Both fields support basic Markdown formatting (bold, italic, unordered lists) with live preview or inline rendering.
-- An image field allows the user to attach a character portrait; the image is stored as a base64 string within the character file.
+- The description section includes a `trasfondo` long-form text field with Markdown support.
+- The `notas` section allows adding free-form note entries grouped by user-defined section name.
+- Multiple images can be attached; they are stored as relative paths in `descripcion.imagenes`.
 - All fields are persisted in the character store and saved with the character file.
 
 **Technical Tasks:**
-- 🔲 Implement `Lore.svelte` with the two text fields and the image field.
-- 🔲 Implement `MarkdownEditor.svelte` with a simple Markdown renderer (evaluate `marked` or `micromark` as a dependency).
-- 🔲 Implement image selection via Tauri's file dialog, read as base64, store in the character schema.
-- 🔲 Add `lore.background`, `lore.history`, and `lore.portrait_base64` fields to `CharacterSchema` (US-03).
+- 🔲 Implement `Description.svelte` with trasfondo, notas, and imagenes fields.
+- 🔲 Implement `MarkdownEditor.svelte` with a simple Markdown renderer (evaluate `marked` or `micromark`).
+- 🔲 Implement image attachment via Tauri file dialog — stores relative path, displays image from path.
+- 🔲 Implement notes section with add/remove section entries.
 
 ---
 
@@ -677,19 +638,20 @@ for each operating system.
 **Dependencies:** US-05
 
 **Acceptance Criteria:**
-- The user can specify a custom content directory via a settings panel or menu option.
-- On load, the application reads all JSON files from that directory and validates each against the appropriate catalog schema.
-- Valid custom entries extend or override base catalog entries by `id`, without replacing the entire catalog.
-- Invalid entries produce a per-file descriptive error; the rest of the custom content loads successfully.
-- Custom entries are visually distinguishable from base entries in dropdowns and lists (e.g. a "custom" badge).
+- On startup, the application loads custom content from a default directory (e.g. `<app_data>/custom_catalogs/`).
+- The user can override the custom content directory path via Settings.
+- On load, all JSON files in the directory are validated against the appropriate catalog schema.
+- Valid custom entries extend or override base catalog entries by key, with custom taking precedence.
+- Invalid entries produce a per-file descriptive error; remaining files continue loading.
+- Custom entries are visually distinguishable from base entries (e.g. a "custom" badge).
 - The custom directory path is persisted across sessions.
 
 **Technical Tasks:**
-- 🔲 Implement Tauri command `list_directory` and `read_file` in `file.rs` to enumerate and read files from an arbitrary directory.
-- 🔲 Implement the merge logic in `src/lib/stores/catalogs.ts`: after loading custom files, merge by `id` with base catalogs, custom entries taking precedence.
+- 🔲 Implement Tauri commands `list_directory` and `read_file` in `file.rs`.
+- 🔲 Implement merge logic in `src/lib/stores/catalogs.ts`: custom entries take precedence over base on key collision.
 - 🔲 Implement the settings UI for selecting the custom content directory.
 - 🔲 Persist the directory path using Tauri's persistent storage.
-- 🔲 Implement the "custom" badge in `Dropdown.svelte` and any other component that lists catalog entries.
+- 🔲 Implement the "custom" badge in `Dropdown.svelte` and other catalog-listing components.
 
 ---
 
@@ -752,7 +714,6 @@ for each operating system.
 - The application detects the system language on first launch and selects English or Spanish accordingly.
 - The user can manually change the language from a settings option.
 - The language preference is persisted across sessions.
-- All catalog entry names (`name.en`, `name.es`) are rendered in the active language.
 
 **Technical Tasks:**
 - 🔲 Implement `src/lib/i18n/en.json` and `src/lib/i18n/es.json` with all UI strings.
@@ -775,14 +736,14 @@ for each operating system.
 **Dependencies:** US-03, US-13
 
 **Acceptance Criteria:**
-- Every character file includes a `schema_version` field.
+- Every character file includes a `metadata.version_schema` field.
 - If the file's schema version matches the application's supported version, it loads normally.
 - If the file's schema version is older but migration logic exists, the file is migrated silently and marked as modified.
 - If the file's schema version is unsupported (too new or unrecognised), an error is shown and the file is not loaded.
 
 **Technical Tasks:**
-- 🔲 Define the current schema version as a constant in `src/lib/schema/character.ts`.
-- 🔲 Implement `migrateCharacter(raw: unknown, fromVersion: string): Character` in a new `src/lib/schema/migrations.ts` module.
+- 🔲 Define the current schema version as a constant in `src/lib/schema/acx/character.ts`.
+- 🔲 Implement `migrateCharacter(raw: unknown, fromVersion: string): Character` in `src/lib/schema/acx/migrations.ts`.
 - 🔲 Invoke migration logic in the file loading flow (US-13) before Zod validation.
 - 🔲 Write tests for each migration path.
 
