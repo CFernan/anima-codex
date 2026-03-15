@@ -26,29 +26,29 @@
         "caracteristicas_primarias": {
             <caracteristica agi|con|des|fue|int|per|pod|vol>: {
                 "base": positiveInt,
-                "modificadores_base": [{
-                    "valor": int,
+                "modificadores_base"?: [{
                     "fuente": string,
+                    "valor": int,
                     "descripcion"?: string
                 }],
-                "modificadores_temporales": [{
-                    "valor": int,
+                "modificadores_temporales"?: [{
                     "fuente": string,
+                    "valor": int,
                     "descripcion"?: string
                 }]
             }
         },
         "caracteristicas_secundarias": {
-            "apariencia": {base, modificadores_base, modificadores_temporales},
-            "tamaño": {modificadores_base, modificadores_temporales},
+            "apariencia": {base, modificadores_base?, modificadores_temporales?},
+            "tamaño": {modificadores_base?, modificadores_temporales?},
         },
         "capacidades_fisicas": {
-            <capacidad_fisica: tipo_de_movimiento|indice_de_peso|cansancio|regeneracion>: {modificadores_base, modificadores_temporales}
+            <capacidad_fisica: tipo_de_movimiento|indice_de_peso|cansancio|regeneracion>: {modificadores_base?, modificadores_temporales?}
         },
         "resistencias": {
-            <resistencia: presencia|rf|rv|re|rm|rp>: {modificadores_base, modificadores_temporales}
+            <resistencia: presencia|rf|rv|re|rm|rp>: {modificadores_base?, modificadores_temporales?}
         },
-        "turno_base": {modificadores_base, modificadores_temporales},
+        "turno_base": {modificadores_base?, modificadores_temporales?},
         "puntos_de_creacion": {
             "ventajas": [{"nombre" enum, opciones?}],
             "desventajas"?: [{"nombre" enum, opciones?}],
@@ -57,18 +57,18 @@
         "categorias": [{
             "categoria": enum,
             "nivel": positiveInt,
-            "puntos_de_vida"?: {"pd": nonNegativeInt, modificadores_base, modificadores_temporales},
+            "puntos_de_vida"?: {"pd": nonNegativeInt, modificadores_base?, modificadores_temporales?},
             "habilidades_de_combate"?: {
-                <basicas: habilidad_de_ataque|habilidad_de_parada|habilidad_de_esquiva|llevar_armadura>: {pd, modificadores_base, modificadores_temporales},
+                <basicas: habilidad_de_ataque|habilidad_de_parada|habilidad_de_esquiva|llevar_armadura>: {pd, modificadores_base?, modificadores_temporales?},
                 "arma_desarrollada": enum,
                 "habilidades_del_ki"?: {
                     "puntos_de_ki"?: {
-                        <puntos_de_ki agi|con|des|fue|pod|vol>?: {pd, modificadores_base, modificadores_temporales}
+                        <puntos_de_ki agi|con|des|fue|pod|vol>?: {pd, modificadores_base?, modificadores_temporales?}
                     },
                     "acumulaciones_de_ki"?: {
-                        <acumulaciones agi|con|des|fue|pod|vol>?: {pd, modificadores_base, modificadores_temporales}
+                        <acumulaciones agi|con|des|fue|pod|vol>?: {pd, modificadores_base?, modificadores_temporales?}
                     },
-                    "conocimiento_marcial"?: {pd, modificadores_base, modificadores_temporales}
+                    "conocimiento_marcial"?: {pd, modificadores_base?, modificadores_temporales?}
                 },
                 "tablas_de_armas"?: [{<tabla ... (enum)>: {pd, opciones?}}],
                 "tablas_de_estilos"?: [{<tabla ... (enum)>: {pd, opciones?}}],
@@ -84,27 +84,27 @@
                 "tablas_de_combate_sobrenatural"?: [{<tabla ... (enum)>: {pd, opciones?}}],
             },
             "habilidades_sobrenaturales"?: {               
-                <basicas zeon|ACT|multiplo_de_regeneracion|proyeccion_magica>: {pd, modificadores_base, modificadores_temporales},
-                "nivel_de_magia"?: {pd, modificadores_base, modificadores_temporales},
+                <basicas zeon|ACT|multiplo_de_regeneracion|proyeccion_magica>: {pd, modificadores_base?, modificadores_temporales?},
+                "nivel_de_magia"?: {pd, modificadores_base?, modificadores_temporales?},
                 "convocatoria"?: {
-                    <convocatoria convocar|controlar|atar|desconvocar>: {pd, modificadores_base, modificadores_temporales},
+                    <convocatoria convocar|controlar|atar|desconvocar>: {pd, modificadores_base?, modificadores_temporales?},
                 },
                 "tablas_misticas"?: [{<tabla ... (enum)>: {pd, opciones?}}]
             },
             "habilidades_psiquicas"?: {
-                <basicas CV|proyeccion_psiquica>: {pd, modificadores_base, modificadores_temporales},
+                <basicas CV|proyeccion_psiquica>: {pd, modificadores_base?, modificadores_temporales?},
                 "tablas_psiquicas"?: [{<tabla ... (enum)>: {pd, opciones?}}],
                 "patrones_mentales"?: [{<patron_mental ... (enum)>: {pd, opciones?}}]
             },
             "habilidades_secundarias"?: {
                 <grupo_directo ...>: {
-                    <habilidad_secundaria ... (enum)>: {base, modificadores_base, modificadores_temporales}
+                    <habilidad_secundaria ... (enum)>: {base, modificadores_base?, modificadores_temporales?}
                 },
                 <grupo_pd ...>: {
-                    <habilidad_secundaria ... (enum)>: {pd, modificadores_base, modificadores_temporales}
+                    <habilidad_secundaria ... (enum)>: {pd, modificadores_base?, modificadores_temporales?}
                 },
                 <grupo_derived ...>: {
-                    <habilidad_secundaria ... (enum)>: {modificadores_base, modificadores_temporales}
+                    <habilidad_secundaria ... (enum)>: {modificadores_base?, modificadores_temporales?}
                 }
             },
             "cambio_de_categoria"?: {<categoria: previa|posterior>?: {pd}}
@@ -116,8 +116,8 @@
                 "encantada"?: bool,
                 "modificadores_armadura"?: [{
                     "TA": <fil|con|pen|cal|ele|fri|ene>,
-                    modificadores_base,
-                    modificadores_temporales
+                    modificadores_base?,
+                    modificadores_temporales?
                 }]
             }],
             "armas"?: [{
@@ -126,8 +126,8 @@
                 "tamaño"?: <normal|enorme|gigante>,
                 "modificadores_arma"?: [{
                     "nombre": <habilidad_de_ataque|habilidad_de_parada|habilidad_de_esquiva|daño|turno>,
-                    modificadores_base,
-                    modificadores_temporales
+                    modificadores_base?,
+                    modificadores_temporales?
                 }],
                 "municion"?: {"nombre": enum, calidad?, tamaño?, modificadores_arma?},
                 "manos"?: <una_mano|dos_manos>,
@@ -194,16 +194,16 @@
         "psiquicos"?: {
             "potencial_psiquico": {
                 "cvs_invertidos": nonnegativeInt,
-                modificadores_base,
-                modificadores_temporales,
+                modificadores_base?,
+                modificadores_temporales?,
                 "cristales_psi": nonnegativeInt
             },
-            "innatos": {cvs_invertidos, modificadores_base, modificadores_temporales},
+            "innatos": {cvs_invertidos, modificadores_base?, modificadores_temporales?},
             "disciplinas": [{
                 "disciplina": enum,
                 "poderes_dominados": [{
                     "nombre": enum,
-                    "fortalecimiento": {cvs_invertidos, modificadores_base, modificadores_temporales}
+                    "fortalecimiento": {cvs_invertidos, modificadores_base?, modificadores_temporales?}
                 }]
             }]
         },
@@ -220,15 +220,15 @@
             "pv": int,
             "cansancio": nonnegativeInt,
             "modificadores_globales": {
-                "a_toda_accion": {modificadores_base, modificadores_temporales},
-                "fisicos": {modificadores_base, modificadores_temporales}
+                "a_toda_accion": {modificadores_base?, modificadores_temporales?},
+                "fisicos": {modificadores_base?, modificadores_temporales?}
             },
             "ki": {
                 "puntos_de_ki": {"total": nonnegativeInt, OR <agi|con|des|fue|pod|vol>: nonnegativeInt},
                 "tecnicas_y_habilidades_mantenidas"?: [{
                     "nombre": enum,
                     "coste"?: {
-                        <agi|con|des|fue|pod|vol>?: {modificadores_base, modificadores_temporales}
+                        <agi|con|des|fue|pod|vol>?: {modificadores_base?, modificadores_temporales?}
                     }
                 }],
             },
@@ -238,11 +238,11 @@
                 "hechizos_mantenidos"?: [{
                     "nombre": enum,
                     "grado": <base|intermedio|avanzado|arcano>,
-                    "coste"?: {modificadores_base, modificadores_temporales}
+                    "coste"?: {modificadores_base?, modificadores_temporales?}
                 }],
                 "criaturas_atadas"?: [{
                     "nombre": string,
-                    "coste": {base, modificadores_base, modificadores_temporales}
+                    "coste": {base, modificadores_base?, modificadores_temporales?}
                 }]
             },
             "mentalismo"?: {

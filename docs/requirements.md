@@ -1,4 +1,4 @@
-# Requirements Specification: Anima Beyond Fantasy — Character Sheet App
+# Requirements Specification: Anima Codex — Character Sheet App
 **Version:** 3.0
 **Status:** Active
 

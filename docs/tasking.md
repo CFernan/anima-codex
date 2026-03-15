@@ -1,4 +1,4 @@
-# Tasking: Anima Beyond Fantasy — Character Sheet App
+# Tasking: Anima Codex — Character Sheet App
 **Version:** 1.2
 **Status:** In Progress
 **Related to:** Requirements v3.0 · Architecture v1.3
@@ -64,11 +64,11 @@ Each user story follows this structure:
 ## Epic 1 — Project Scaffolding
 
 ### ✅ US-01 · Project bootstrap
-**As a** developer  
-**I want** a working project skeleton with all tooling configured  
+**As a** developer
+**I want** a working project skeleton with all tooling configured
 **so that** I can start implementing features without setup friction.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** none
 
 **Acceptance Criteria:**
@@ -95,11 +95,11 @@ Each user story follows this structure:
 ---
 
 ### ✅ US-02 · File extension registration
-**As a** user  
-**I want** `.acx` files to be associated with the application in my operating system  
+**As a** user
+**I want** `.acx` files to be associated with the application in my operating system
 **so that** I can open character files by double-clicking them.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-01
 
 **Acceptance Criteria:**
@@ -117,13 +117,13 @@ Each user story follows this structure:
 - ✅ Handle the case where no argument is provided (show start screen with a blank character tab).
 
 ### 🔲 US-32 · Multiplatform CI/CD pipeline
-**As a** developer  
-**I want** an automated build pipeline that compiles and packages the application 
-for Windows, Linux, and macOS  
-**so that** releases are produced for all platforms without requiring native machines 
+**As a** developer
+**I want** an automated build pipeline that compiles and packages the application
+for Windows, Linux, and macOS
+**so that** releases are produced for all platforms without requiring native machines
 for each operating system.
 
-**Priority:** COULD  
+**Priority:** COULD
 **Dependencies:** US-01
 
 **Acceptance Criteria:**
@@ -170,7 +170,7 @@ for each operating system.
 
 **Technical Tasks:**
 - ✅ Define complete pseudo-schema of .acx format.
-- ✅ Implement pseudo-schema under stc/lib/schema/acx and stc/lib/schema/common for global usages.
+- ✅ Implement pseudo-schema under src/lib/schema/acx and src/lib/schema/common for global usages.
 - 🔲 Write unit tests in `tests/lib/schema/acx` and `tests/lib/schema/common`.
 
 ---
@@ -230,11 +230,11 @@ for each operating system.
 ## Epic 3 — Rules Engine
 
 ### 🔲 US-07 · Composite attribute resolution
-**As a** developer  
-**I want** a module that computes effective and requirement values for any composite attribute  
+**As a** developer
+**I want** a module that computes effective and requirement values for any composite attribute
 **so that** the distinction between base, permanent modifiers, and temporary modifiers is enforced consistently.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-03
 
 **Acceptance Criteria:**
@@ -253,11 +253,11 @@ for each operating system.
 ---
 
 ### 🔲 US-08 · Primary characteristic modifier table
-**As a** developer  
-**I want** the engine to compute the Characteristic Modifier for any primary stat value  
+**As a** developer
+**I want** the engine to compute the Characteristic Modifier for any primary stat value
 **so that** all derived stats that depend on it are calculated correctly.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-07
 
 **Acceptance Criteria:**
@@ -272,11 +272,11 @@ for each operating system.
 ---
 
 ### 🔲 US-09 · Derived stat computation
-**As a** developer  
-**I want** the engine to compute all derived stats from primary characteristics  
+**As a** developer
+**I want** the engine to compute all derived stats from primary characteristics
 **so that** the UI can display them reactively.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-07, US-08
 
 **Acceptance Criteria:**
@@ -295,11 +295,11 @@ for each operating system.
 ---
 
 ### 🔲 US-10 · DP cost resolution
-**As a** developer  
-**I want** the engine to compute the DP cost of any ability for the active character's category  
+**As a** developer
+**I want** the engine to compute the DP cost of any ability for the active character's category
 **so that** the sheet can enforce point limits and display costs correctly.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-05, US-07
 
 **Acceptance Criteria:**
@@ -316,11 +316,11 @@ for each operating system.
 ---
 
 ### 🔲 US-11 · Automatic modifier lifecycle
-**As a** developer  
-**I want** the engine to automatically compute and apply modifiers when their source values change  
+**As a** developer
+**I want** the engine to automatically compute and apply modifiers when their source values change
 **so that** race bonuses, category bonuses, and similar effects are always in sync with the sheet.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-07, US-05
 
 **Acceptance Criteria:**
@@ -342,11 +342,11 @@ for each operating system.
 ## Epic 4 — File Management
 
 ### 🔲 US-12 · New character
-**As a** user  
-**I want** to create a blank character sheet  
+**As a** user
+**I want** to create a blank character sheet
 **so that** I can start building a new character from scratch.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-03, US-05
 
 **Acceptance Criteria:**
@@ -359,18 +359,18 @@ for each operating system.
 **Technical Tasks:**
 - 🔲 Implement `defaultCharacter(): Character` in `src/lib/schema/character.ts`.
 - 🔲 Implement the `File > New` menu action in `MenuBar.svelte`.
-- 🔲 Implement `openNewTab(character, filePath): void` in the app store — 
+- 🔲 Implement `openNewTab(character, filePath): void` in the app store —
   appends a new tab to the tabs array and sets it as active.
 - 🔲 Connect `File > New` to `openNewTab(defaultCharacter(), null)`.
 
 ---
 
 ### 🔲 US-13 · Open and save character files
-**As a** user  
-**I want** to open an existing character file and save my current character to disk  
+**As a** user
+**I want** to open an existing character file and save my current character to disk
 **so that** my work persists between sessions.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-03, US-05
 
 **Acceptance Criteria:**
@@ -392,18 +392,18 @@ for each operating system.
 ---
 
 ### 🔲 US-14 · Unsaved changes guard
-**As a** user  
-**I want** to be warned before losing unsaved changes  
+**As a** user
+**I want** to be warned before losing unsaved changes
 **so that** I never accidentally discard work.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-13
 
 **Acceptance Criteria:**
 - Each tab displays an unsaved changes indicator when `isDirty` is true.
-- Attempting to close a tab with unsaved changes shows a confirmation dialog 
+- Attempting to close a tab with unsaved changes shows a confirmation dialog
   with options: Save, Discard, Cancel.
-- Attempting to close the application while any tab has unsaved changes shows 
+- Attempting to close the application while any tab has unsaved changes shows
   a confirmation dialog for each affected tab in sequence.
 - "Save" triggers the save flow before closing the tab.
 - "Discard" closes the tab without saving.
@@ -419,11 +419,11 @@ for each operating system.
 ---
 
 ### 🔲 US-15 · Recent files
-**As a** user  
-**I want** quick access to recently opened character files  
+**As a** user
+**I want** quick access to recently opened character files
 **so that** I can resume work without navigating the file system.
 
-**Priority:** SHOULD  
+**Priority:** SHOULD
 **Dependencies:** US-13
 
 **Acceptance Criteria:**
@@ -443,11 +443,11 @@ for each operating system.
 ## Epic 5 — Character Sheet UI
 
 ### 🔲 US-16 · Character identity section
-**As a** user  
-**I want** to fill in my character's basic identity fields  
+**As a** user
+**I want** to fill in my character's basic identity fields
 **so that** I can identify the character and set the foundational data that other sections depend on.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-03, US-05, US-18
 
 **Acceptance Criteria:**
@@ -467,11 +467,11 @@ for each operating system.
 ---
 
 ### 🔲 US-17 · Primary characteristics section
-**As a** user  
-**I want** to view and edit the eight primary characteristics with their modifier breakdown  
+**As a** user
+**I want** to view and edit the eight primary characteristics with their modifier breakdown
 **so that** I can manage the core stats of my character and understand where each value comes from.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-07, US-08, US-18
 
 **Acceptance Criteria:**
@@ -493,15 +493,15 @@ for each operating system.
 ---
 
 ### 🔲 US-18 · App store & reactive engine integration
-**As a** developer  
-**I want** a central Svelte store that manages all open tabs and triggers engine recalculations automatically 
+**As a** developer
+**I want** a central Svelte store that manages all open tabs and triggers engine recalculations automatically
 **so that** any change in any tab propagates correctly to all dependent values.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-07, US-09, US-10
 
 **Acceptance Criteria:**
-- A single writable Svelte store holds the full app state: an array of tabs 
+- A single writable Svelte store holds the full app state: an array of tabs
   and the active tab ID.
 - Each tab contains its own `Character` state, `currentFilePath`, and `isDirty`.
 - A derived store `activeTab` always reflects the currently selected tab.
@@ -520,11 +520,11 @@ for each operating system.
 ---
 
 ### 🔲 US-19 · Derived stats section
-**As a** user  
-**I want** to see all derived stats updated in real time as I edit primary characteristics  
+**As a** user
+**I want** to see all derived stats updated in real time as I edit primary characteristics
 **so that** I always have an accurate view of my character's capabilities.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-09, US-18
 
 **Acceptance Criteria:**
@@ -540,11 +540,11 @@ for each operating system.
 ---
 
 ### 🔲 US-20 · Category selection & DP budget
-**As a** user  
-**I want** to select my character's category and see my DP budget and spending at a glance  
+**As a** user
+**I want** to select my character's category and see my DP budget and spending at a glance
 **so that** I can manage point allocation without mental arithmetic.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-10, US-16, US-18
 
 **Acceptance Criteria:**
@@ -560,11 +560,11 @@ for each operating system.
 ---
 
 ### 🔲 US-21 · Secondary abilities & primary combat abilities
-**As a** user  
-**I want** to manage my character's secondary abilities and primary combat abilities  
+**As a** user
+**I want** to manage my character's secondary abilities and primary combat abilities
 **so that** I can allocate DP and track my character's skills.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-10, US-18, US-20
 
 **Acceptance Criteria:**
@@ -584,11 +584,11 @@ for each operating system.
 ---
 
 ### 🔲 US-22 · Description & free-text fields
-**As a** user  
-**I want** to write free-form text for my character's background and attach images  
+**As a** user
+**I want** to write free-form text for my character's background and attach images
 **so that** the sheet captures the narrative side of my character.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-18
 
 **Acceptance Criteria:**
@@ -608,11 +608,11 @@ for each operating system.
 ## Epic 6 — Input Validation
 
 ### 🔲 US-23 · Numeric input validation
-**As a** user  
-**I want** numeric fields to reject invalid input immediately  
+**As a** user
+**I want** numeric fields to reject invalid input immediately
 **so that** the character sheet never contains malformed data.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-17, US-21
 
 **Acceptance Criteria:**
@@ -630,11 +630,11 @@ for each operating system.
 ## Epic 7 — Custom Content
 
 ### 🔲 US-24 · Custom content directory
-**As a** user  
-**I want** to specify a folder of custom content files  
+**As a** user
+**I want** to specify a folder of custom content files
 **so that** I can use homebrew weapons, abilities, or other content alongside the official catalog.
 
-**Priority:** SHOULD  
+**Priority:** SHOULD
 **Dependencies:** US-05
 
 **Acceptance Criteria:**
@@ -658,11 +658,11 @@ for each operating system.
 ## Epic 8 — Export & Print
 
 ### 🔲 US-25 · Print view
-**As a** user  
-**I want** a printer-friendly view of my character sheet  
+**As a** user
+**I want** a printer-friendly view of my character sheet
 **so that** I can print a physical copy.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-19, US-21, US-22
 
 **Acceptance Criteria:**
@@ -679,11 +679,11 @@ for each operating system.
 ---
 
 ### 🔲 US-26 · PDF export
-**As a** user  
-**I want** to export my character sheet as a PDF file  
+**As a** user
+**I want** to export my character sheet as a PDF file
 **so that** I can share it digitally.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-25
 
 **Acceptance Criteria:**
@@ -702,11 +702,11 @@ for each operating system.
 ## Epic 9 — Localisation
 
 ### 🔲 US-27 · English and Spanish UI
-**As a** user  
-**I want** the application interface to be available in English and Spanish  
+**As a** user
+**I want** the application interface to be available in English and Spanish
 **so that** I can use it in my preferred language.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-01
 
 **Acceptance Criteria:**
@@ -728,11 +728,11 @@ for each operating system.
 ## Epic 10 — Reliability & Non-Functional
 
 ### 🔲 US-28 · Schema version compatibility
-**As a** user  
-**I want** the application to detect and handle incompatible character files gracefully  
+**As a** user
+**I want** the application to detect and handle incompatible character files gracefully
 **so that** I am never left with a broken session after opening an old or future-format file.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-03, US-13
 
 **Acceptance Criteria:**
@@ -750,11 +750,11 @@ for each operating system.
 ---
 
 ### 🔲 US-29 · Crash-safe file loading
-**As a** user  
-**I want** the application to remain stable when opening a malformed file  
+**As a** user
+**I want** the application to remain stable when opening a malformed file
 **so that** a corrupted file never prevents me from using the app.
 
-**Priority:** MUST  
+**Priority:** MUST
 **Dependencies:** US-13
 
 **Acceptance Criteria:**
@@ -770,11 +770,11 @@ for each operating system.
 ---
 
 ### 🔲 US-30 · Automatic backup on save
-**As a** user  
-**I want** the application to keep a backup of my last saved file before overwriting it  
+**As a** user
+**I want** the application to keep a backup of my last saved file before overwriting it
 **so that** I can recover from accidental overwrites.
 
-**Priority:** SHOULD  
+**Priority:** SHOULD
 **Dependencies:** US-13
 
 **Acceptance Criteria:**
@@ -789,11 +789,11 @@ for each operating system.
 ---
 
 ### 🔲 US-31 · Auto-save
-**As a** user  
-**I want** the application to periodically save my work automatically  
+**As a** user
+**I want** the application to periodically save my work automatically
 **so that** I lose minimal progress in the event of a crash.
 
-**Priority:** COULD  
+**Priority:** COULD
 **Dependencies:** US-13
 
 **Acceptance Criteria:**
