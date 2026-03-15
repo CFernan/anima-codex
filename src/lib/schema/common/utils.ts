@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+
 /**
  * Builds a z.object() whose keys are the values of a z.enum() and whose
  * values all share the same schema.
@@ -41,4 +42,4 @@ export const uniqueValues = <T>(keyFn: (item: T) => unknown = (x) => x) =>
   (items: T[]): boolean => {
     const seen = new Set(items.map(keyFn));
     return seen.size === items.length;
-  };
+};

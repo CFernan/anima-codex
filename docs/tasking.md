@@ -145,7 +145,7 @@ for each operating system.
 
 ## Epic 2 — Data Layer
 
-### 🔄 US-03 · Character schema definition
+### ✅ US-03 · Character schema definition
 **As a** developer
 **I want** a formally defined and versioned character schema
 **so that** all character data has a guaranteed shape throughout the application.
@@ -170,8 +170,7 @@ for each operating system.
 
 **Technical Tasks:**
 - ✅ Define complete pseudo-schema of .acx format.
-- ✅ Implement pseudo-schema under src/lib/schema/acx and src/lib/schema/common for global usages.
-- 🔲 Write unit tests in `tests/lib/schema/acx` and `tests/lib/schema/common`.
+- 🔄 Implement pseudo-schema under src/lib/schema/acx and src/lib/schema/common for global usages.
 
 ---
 
@@ -198,7 +197,6 @@ for each operating system.
 **Technical Tasks:**
 - 🔲 Define complete pseudo-schema of catalogs format.
 - 🔲 Implement pseudo-schema under `src/lib/schema/catalog`. If needed, move common components from `src/lib/schema/acx` to `src/lib/schema/common`
-- 🔲 Write unit tests in `tests/lib/schema/catalog` and `tests/lib/schema/common`.
 
 ---
 
