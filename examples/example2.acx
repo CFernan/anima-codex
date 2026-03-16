@@ -1,30 +1,148 @@
 {
   "metadata": {
-    "version_schema":  "1.0",
+    "version_schema": "1.0",
     "marca_de_tiempo": "2026-03-14T10:00:00Z",
-    "jugador":         "Juan"
+    "jugador": "Maria"
   },
-  "input": {
-    "nombre": "Kael",
-    "raza":   { "nombre": "Sylvain" },
-    "caracteristicas_primarias": {
-      "agi": {
-        "base": 10,
-        "modificadores_base": [
-          {
-            "valor":      1,
-            "fuente":     "Bendición divina",
-            "descripcion": "Bendición permanente recibida por la Beryl Gabriel"
-          }
-        ],
-        "modificadores_temporales": []
-      }
+  "entrada": {
+    "nombre": "Sylara",
+    "raza": {
+      "nombre": "Sylvain"
     },
     "caracteristicas_del_ser": {
-      "tipo":   { "nombre": "Natural" },
+      "tipo": {
+        "nombre": "Natural"
+      },
       "gnosis": 10
     },
-    "estado": { "pv": 120, "cansancio": 0 }
+    "caracteristicas_primarias": {
+      "agi": {
+        "base": 6
+      },
+      "con": {
+        "base": 7
+      },
+      "des": {
+        "base": 8
+      },
+      "fue": {
+        "base": 5
+      },
+      "int": {
+        "base": 10
+      },
+      "per": {
+        "base": 9
+      },
+      "pod": {
+        "base": 10
+      },
+      "vol": {
+        "base": 10
+      }
+    },
+    "caracteristicas_secundarias": {
+      "apariencia": {
+        "base": 10
+      },
+      "tamaño": {}
+    },
+    "capacidades_fisicas": {
+      "tipo_de_movimiento": {},
+      "indice_de_peso": {},
+      "cansancio": {},
+      "regeneracion": {}
+    },
+    "resistencias": {
+      "presencia": {},
+      "rf": {},
+      "rv": {},
+      "re": {},
+      "rm": {},
+      "rp": {}
+    },
+    "turno_base": {},
+    "puntos_de_creacion": {
+      "ventajas": [
+        {
+          "nombre": "Don"
+        }
+      ]
+    },
+    "categorias": [
+      {
+        "categoria": "Hechicero",
+        "nivel": 1,
+        "habilidades_sobrenaturales": {
+          "zeon": {
+            "pd": 80
+          },
+          "ACT": {
+            "pd": 100
+          },
+          "multiplo_de_regeneracion": {
+            "pd": 0
+          },
+          "proyeccion_magica": {
+            "pd": 180
+          },
+          "nivel_de_magia": {
+            "pd": 0
+          }
+        },
+        "habilidades_secundarias": {
+          "intelectuales": {
+            "historia": {
+              "pd": 20
+            },
+            "ocultismo": {
+              "pd": 40,
+              "modificadores_base": [
+                {
+                  "valor": 10,
+                  "fuente": "bono natural"
+                }
+              ]
+            },
+            "v_magica": {
+              "pd": 20,
+              "modificadores_base": [
+                {
+                  "valor": 15,
+                  "fuente": "habilidad natural"
+                }
+              ]
+            }
+          },
+          "perceptivas": {
+            "advertir": {
+              "pd": 30
+            }
+          },
+          "sociales": {
+            "persuasion": {
+              "pd": 20
+            }
+          }
+        }
+      }
+    ],
+    "estado": {
+      "pv": 40,
+      "cansancio": 0,
+      "modificadores_globales": {
+        "a_toda_accion": {},
+        "fisicos": {}
+      },
+      "ki": {
+        "puntos_de_ki": {
+          "total": 0
+        }
+      },
+      "sobrenatural": {
+        "zeon": 300
+      }
+    }
   },
-  "catalogo_local": { }
+  "catalogo_local": {}
 }

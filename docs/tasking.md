@@ -29,7 +29,7 @@ Each user story follows this structure:
 
 - ✅ US-01  Project bootstrap
 - ✅ US-02  File extension registration
-- 🔄 US-03  Character schema definition         ← superseded, see note
+- ✅ US-03  Character schema definition         ← superseded, see note
 - 🔲 US-04  Catalog schema definition            ← superseded, see note
 - ⏸ US-05  Base content catalogs
 - 🔲 US-07  Composite attribute resolution
@@ -170,7 +170,8 @@ for each operating system.
 
 **Technical Tasks:**
 - ✅ Define complete pseudo-schema of .acx format.
-- 🔄 Implement pseudo-schema under src/lib/schema/acx and src/lib/schema/common for global usages.
+- ✅ Implement pseudo-schema under src/lib/schema/acx and src/lib/schema/common for global usages.
+- ✅ Add UT for example .acx files
 
 ---
 

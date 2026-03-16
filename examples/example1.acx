@@ -1,30 +1,117 @@
 {
   "metadata": {
-    "version_schema":  "1.0",
+    "version_schema": "1.0",
     "marca_de_tiempo": "2026-03-14T10:00:00Z",
-    "jugador":         "Juan"
+    "jugador": "Juan"
   },
-  "input": {
+  "entrada": {
     "nombre": "Kael",
-    "raza":   { "nombre": "Sylvain" },
-    "caracteristicas_primarias": {
-      "agi": {
-        "base": 10,
-        "modificadores_base": [
-          {
-            "valor":      1,
-            "fuente":     "Bendición divina",
-            "descripcion": "Bendición permanente recibida por la Beryl Gabriel"
-          }
-        ],
-        "modificadores_temporales": []
-      }
+    "raza": {
+      "nombre": "Humano"
     },
     "caracteristicas_del_ser": {
-      "tipo":   { "nombre": "Natural" },
-      "gnosis": 10
+      "tipo": {
+        "nombre": "Natural"
+      },
+      "gnosis": 0
     },
-    "estado": { "pv": 120, "cansancio": 0 }
+    "caracteristicas_primarias": {
+      "agi": {
+        "base": 8,
+        "modificadores_base": [
+          {
+            "valor": 1,
+            "fuente": "Bendición divina",
+            "descripcion": "Bendición permanente recibida por la Beryl Gabriel"
+          }
+        ]
+      },
+      "con": {
+        "base": 8
+      },
+      "des": {
+        "base": 9
+      },
+      "fue": {
+        "base": 7
+      },
+      "int": {
+        "base": 9
+      },
+      "per": {
+        "base": 5
+      },
+      "pod": {
+        "base": 5,
+        "modificadores_temporales": [
+          {
+            "valor": 2,
+            "fuente": "Nodo mistico"
+          }
+        ]
+      },
+      "vol": {
+        "base": 6
+      }
+    },
+    "caracteristicas_secundarias": {
+      "apariencia": {
+        "base": 8
+      },
+      "tamaño": {}
+    },
+    "capacidades_fisicas": {
+      "tipo_de_movimiento": {},
+      "indice_de_peso": {},
+      "cansancio": {},
+      "regeneracion": {}
+    },
+    "resistencias": {
+      "presencia": {},
+      "rf": {},
+      "rv": {},
+      "re": {},
+      "rm": {},
+      "rp": {}
+    },
+    "turno_base": {},
+    "puntos_de_creacion": {
+      "ventajas": []
+    },
+    "categorias": [
+      {
+        "categoria": "Guerrero",
+        "nivel": 1,
+        "habilidades_de_combate": {
+          "habilidad_de_ataque": {
+            "pd": 50
+          },
+          "habilidad_de_parada": {
+            "pd": 30
+          },
+          "habilidad_de_esquiva": {
+            "pd": 0
+          },
+          "llevar_armadura": {
+            "pd": 20
+          },
+          "arma_desarrollada": "espada larga"
+        }
+      }
+    ],
+    "estado": {
+      "pv": 50,
+      "cansancio": 0,
+      "modificadores_globales": {
+        "a_toda_accion": {},
+        "fisicos": {}
+      },
+      "ki": {
+        "puntos_de_ki": {
+          "total": 10
+        }
+      }
+    }
   },
-  "catalogo_local": { }
+  "catalogo_local": {}
 }

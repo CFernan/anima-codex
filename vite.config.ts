@@ -15,6 +15,7 @@ export default defineConfig({
     sourcemap: !!process.env.TAURI_DEBUG,
   },
   test: {
+    environment: "node",
     include: ['tests/**/*.test.ts'],
   },
 });
