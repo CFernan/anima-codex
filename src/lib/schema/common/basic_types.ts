@@ -8,12 +8,13 @@ export const integer        = z.number().int();
 export const nonNegativeInt = z.number().int().nonnegative();
 export const positiveInt    = z.number().int().positive();
 export const pd             = nonNegativeInt; // alias — appears as standalone field name in schemas
+export const positiveFrac   = z.number().min(0).max(1)
 
 // ---------------------------------------------------------------------------
 // Attribute modifier
 // Field names in Spanish — appear verbatim in .acx save files.
 // ---------------------------------------------------------------------------
-export const AttributeModifierSchema = z.object({
+export const ModificadorAttributoSchema = z.object({
   /** Origin of the modifier (e.g. "Hechizo", "Equipo"). */
   fuente:      z.string(),
   /** Numeric modifier value. May be negative. */
@@ -21,48 +22,65 @@ export const AttributeModifierSchema = z.object({
   /** Optional free-text description. */
   descripcion: z.string().optional(),
 }).strict();
-export type AttributeModifier = z.infer<typeof AttributeModifierSchema>;
+export type ModificadorAtributo = z.infer<typeof ModificadorAttributoSchema>;
 
 const modifierArrays = z.object({
-  modificadores_base:       z.array(AttributeModifierSchema).optional(),
-  modificadores_temporales: z.array(AttributeModifierSchema).optional(),
+  modificadores_base:       z.array(ModificadorAttributoSchema).optional(),
+  modificadores_temporales: z.array(ModificadorAttributoSchema).optional(),
 });
 
 // ---------------------------------------------------------------------------
 // Attribute types
 //
-//   DirectAttributeSchema  — base (user-assigned) + modifiers
-//   PDAttributeSchema      — pd investment + modifiers
-//   DerivedAttributeSchema — modifiers only (base computed by engine)
+//   AtributoDirectoSchema  — base (user-assigned) + modifiers
+//   AtributoPDSchema       — pd investment + modifiers
+//   AtributoDerivadoSchema — modifiers only (base computed by engine)
 // ---------------------------------------------------------------------------
 
 /** Directly assigned base value. Used for: primary characteristics, apariencia. */
-export const DirectAttributeSchema = z.object({
+export const AtributoDirectoSchema = z.object({
   base: positiveInt,
   ...modifierArrays.shape,
 });
-export type DirectAttribute = z.infer<typeof DirectAttributeSchema>;
+export type AtributoDirecto = z.infer<typeof AtributoDirectoSchema>;
 
 /** PD-invested attribute. Used for: combat skills, secondary skills, HP, etc. */
-export const PDAttributeSchema = z.object({
+export const AtributoPDSchema = z.object({
   pd: pd,
   ...modifierArrays.shape,
 });
-export type PDAttribute = z.infer<typeof PDAttributeSchema>;
+export type AtributoPD = z.infer<typeof AtributoPDSchema>;
 
 /** Derived attribute — only modifiers, base computed by engine. */
-export const DerivedAttributeSchema = z.object({
+export const AtributoDerivadoSchema = z.object({
   ...modifierArrays.shape,
 });
-export type DerivedAttribute = z.infer<typeof DerivedAttributeSchema>;
+export type AtributoDerivado = z.infer<typeof AtributoDerivadoSchema>;
 
 /** Flexible attribute — an attribute that can be any type of the above. */
-export const FlexibleAttributeSchema = z.union([
-  DirectAttributeSchema.strict(),
-  PDAttributeSchema.strict(),
-  DerivedAttributeSchema.strict(),
+export const AtributoFlexibleSchema = z.union([
+  AtributoDirectoSchema.strict(),
+  AtributoPDSchema.strict(),
+  AtributoDerivadoSchema.strict(),
 ]);
-export type FlexibleAttribute = z.infer<typeof FlexibleAttributeSchema>;
+export type AtributoFlexible = z.infer<typeof AtributoFlexibleSchema>;
+
+/** Enum and map to track the attribute type */
+export type AtributoSchema =
+  | typeof AtributoDirectoSchema
+  | typeof AtributoPDSchema
+  | typeof AtributoDerivadoSchema
+  | typeof AtributoFlexibleSchema;
+
+export const TipoAtributoSchema = z.enum(["directo", "pd", "derivado", "flexible"]);
+export type TipoAtributo = z.infer<typeof TipoAtributoSchema>;
+
+export const AttributeTypeSchemaMap = {
+  directo:  AtributoDirectoSchema,
+  pd:       AtributoPDSchema,
+  derivado: AtributoDerivadoSchema,
+  flexible: AtributoFlexibleSchema
+} satisfies Record<TipoAtributo, AtributoSchema>;
 
 // ---------------------------------------------------------------------------
 
@@ -80,5 +98,5 @@ export const PdOpcionesSchema = z.object({
 });
 export type PdOpciones = z.infer<typeof PdOpcionesSchema>;
 
-/** TablaEntrySchema — Used as a PD table generic unknown structure */
-export const TablaEntrySchema = z.record(z.string(), PdOpcionesSchema);
+/** TablaPDSchema — Used as a PD generic table unknown structure */
+export const TablaPDSchema = z.record(z.string(), PdOpcionesSchema);

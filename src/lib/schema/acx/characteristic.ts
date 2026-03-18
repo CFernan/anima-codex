@@ -4,8 +4,8 @@ import {
   ResistenciaEnum,
 } from "../common/enums";
 import {
-  DirectAttributeSchema,
-  DerivedAttributeSchema,
+  AtributoDirectoSchema,
+  AtributoDerivadoSchema,
 } from "../common/basic_types";
 import { schemaFromEnum } from "../common/utils";
 
@@ -14,7 +14,7 @@ import { schemaFromEnum } from "../common/utils";
 // Primary characteristics — all 8, all required, base > 0
 // ---------------------------------------------------------------------------
 export const CaracteristicasPrimariasSchema = schemaFromEnum(
-  CaracteristicaEnum, DirectAttributeSchema,
+  CaracteristicaEnum, AtributoDirectoSchema,
 );
 export type CaracteristicasPrimarias = z.infer<typeof CaracteristicasPrimariasSchema>;
 
@@ -24,8 +24,8 @@ export type CaracteristicasPrimarias = z.infer<typeof CaracteristicasPrimariasSc
 //   tamaño     — DerivedAttribute (base computed by engine from characteristics)
 // ---------------------------------------------------------------------------
 export const CaracteristicasSecundariasSchema = z.object({
-  apariencia: DirectAttributeSchema,
-  tamaño:     DerivedAttributeSchema,
+  apariencia: AtributoDirectoSchema,
+  tamaño:     AtributoDerivadoSchema,
 });
 export type CaracteristicasSecundarias = z.infer<typeof CaracteristicasSecundariasSchema>;
 
@@ -33,7 +33,7 @@ export type CaracteristicasSecundarias = z.infer<typeof CaracteristicasSecundari
 // Physical capacities — all 4, modifiers only
 // ---------------------------------------------------------------------------
 export const CapacidadesFisicasSchema = schemaFromEnum(
-  CapacidadFisicaEnum, DerivedAttributeSchema,
+  CapacidadFisicaEnum, AtributoDerivadoSchema,
 );
 export type CapacidadesFisicas = z.infer<typeof CapacidadesFisicasSchema>;
 
@@ -41,6 +41,6 @@ export type CapacidadesFisicas = z.infer<typeof CapacidadesFisicasSchema>;
 // Resistances and presence — all 6, modifiers only
 // ---------------------------------------------------------------------------
 export const ResistenciasSchema = schemaFromEnum(
-  ResistenciaEnum, DerivedAttributeSchema,
+  ResistenciaEnum, AtributoDerivadoSchema,
 );
 export type Resistencias = z.infer<typeof ResistenciasSchema>;

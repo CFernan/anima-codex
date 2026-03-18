@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { nonNegativeInt, DerivedAttributeSchema } from "../common/basic_types";
+import { nonNegativeInt, AtributoDerivadoSchema } from "../common/basic_types";
 
 
 // ---------------------------------------------------------------------------
@@ -7,7 +7,7 @@ import { nonNegativeInt, DerivedAttributeSchema } from "../common/basic_types";
 // ---------------------------------------------------------------------------
 export const CVInversionSchema = z.object({
   cvs_invertidos: nonNegativeInt,
-  ...DerivedAttributeSchema.shape,
+  ...AtributoDerivadoSchema.shape,
 });
 
 export const PsiquicosSchema = z.object({

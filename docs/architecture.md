@@ -168,14 +168,14 @@ src/lib/schema/
                                   KiCaracteristicaEnum, etc.)
     basic_types.ts            ← basic common schemas (AttributeModifier,
                                   DirectAttribute, PDAttribute, etc)
-  
+
   acx/                        ← shape of the .acx character file
     character.ts              ← root .acx schema (metadata, entrada,
                                   catalogo_local)
-    characteristic.ts         ← primary/secondary characteristics, 
+    characteristic.ts         ← primary/secondary characteristics,
                                   capacities, resistances
     creation_points.ts        ← PuntosDeCreacion
-    category.ts               ← CategoriaInversion (per-category PD 
+    category.ts               ← CategoriaInversion (per-category PD
                                   investment)
     combat_abilities.ts       ← HabilidadesDeCombate, HabilidadesDelKi
     supernatural_abilities.ts ← HabilidadesSobrenaturales
@@ -189,7 +189,7 @@ src/lib/schema/
     state.ts                  ← Estado
     character_miscellany.ts   ← Other minor schemas for character
     local_catalog.ts          ← Schema for local character catalog
-  
+
   catalog/                    ← validation contracts for base and
                                   custom catalogs
     (pending)
@@ -215,7 +215,7 @@ rejecting unknown category identifiers at runtime.
 |---|---|---|
 | Runtime objects in memory | `z.infer<typeof Schema>` | Post-parse type — what the engine and UI work with. |
 | Data file objects pre-parse | `z.input<typeof Schema>` | Pre-parse type — reflects what a raw `.acx` or catalog file may contain before Zod processes it. |
-| Default data files (`src/lib/data/`) | `satisfies z.input<typeof Schema>` | Compile-time check that the data object is a valid input to the schema, without widening the inferred type. Catches missing or mistyped fields at the editor level. |
+| Default catalog files (`src/lib/catalogs/`) | `satisfies z.input<typeof Schema>` | Compile-time check that the catalog object is a valid input to the schema, without widening the inferred type. Catches missing or mistyped fields at the editor level. |
 | Schema exhaustiveness | `satisfies Record<KeyEnum, z.ZodTypeAny>` | Compile-time check that all enum keys are covered in a `schemaFromEnum` call or similar construction. Fails to compile if a new enum value is added without a corresponding schema entry. |
 
 #### Naming conventions
@@ -281,7 +281,7 @@ The engine constructs the **effective catalog** at runtime by merging three laye
 
 | Catalog | Priority | Description | Scope |
 | :--- | :---: | :--- | :--- |
-| **Base** | 1 | Hardcoded modules in `src/lib/data/` | Global |
+| **Base** | 1 | Hardcoded modules in `src/lib/catalogs/` | Global |
 | **Custom Persistent** | 2 | Loaded from the custom catalog directory. | Intended for homebrew categories, custom magic vias, new secondary skill groups. They are loaded at startup alongside the base catalog and persist across all characters. |
 | **Custom Hot** | 3 | Embedded in the `.acx` file under `catalogo_local` | Intended for character-specific content: unique weapons, custom ki techniques or new secondary abilities.
 
@@ -297,7 +297,7 @@ For example, some recurrent custom secondary abilities.
 
 #### Base catalog bundling
 
-Base catalogs are TypeScript modules in `src/lib/data/`, validated at compile
+Base catalogs are TypeScript modules in `src/lib/catalogs/`, validated at compile
 time via `satisfies z.input<typeof CatalogSchema>`. No disk read occurs at
 startup for base content.
 

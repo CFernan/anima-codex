@@ -1,6 +1,6 @@
 # Anima Codex
 
-An open-source desktop character sheet for *Anima: Beyond Fantasy*.  
+An open-source desktop character sheet for *Anima: Beyond Fantasy*.
 Built with Tauri + SvelteKit + TypeScript.
 
 ---
@@ -77,7 +77,7 @@ anima-codex/
 │   │   │   ├── common/     # Primitives shared by acx & catalog
 │   │   │   ├── acx/        # Character file (.acx) schemas
 │   │   │   └── catalog/    # Catalog validation contracts (base & custom)
-│   │   ├── data/           # Default official content (satisfies catalog schemas)
+│   │   ├── catalogs/       # Default official content (satisfies catalog schemas)
 │   │   ├── stores/         # Svelte reactive stores
 │   │   └── i18n/           # Localisation files
 │   ├── components/         # (pending — US-16 onwards)
@@ -96,7 +96,7 @@ anima-codex/
 ├── tests/                  # Unit tests (Vitest)
 │   └── lib/
 │       ├── schema/         # Schema validation tests
-│       └── data/           # Default catalog integrity tests
+│       └── catalogs/       # Default catalog integrity tests
 ├── tools/                  # (pending — backlog) Standalone utilities
 │   └── xlsx-migrator/
 └── static/                 # Static assets

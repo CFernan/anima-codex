@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FlexibleAttributeSchema } from "../common/basic_types";
+import { AtributoFlexibleSchema } from "../common/basic_types";
 
 
 // ---------------------------------------------------------------------------
@@ -15,6 +15,6 @@ import { FlexibleAttributeSchema } from "../common/basic_types";
 // ---------------------------------------------------------------------------
 export const HabilidadesSecundariasSchema = z.record(
   z.string(),                                    // group
-  z.record(z.string(), FlexibleAttributeSchema), // records of skills
+  z.record(z.string(), AtributoFlexibleSchema), // records of skills
 );
 export type HabilidadesSecundarias = z.infer<typeof HabilidadesSecundariasSchema>;

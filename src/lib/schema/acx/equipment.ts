@@ -3,7 +3,7 @@ import {
   TipoTAEnum, TamañoArmaEnum, ManosEnum, ModificadorArmaEnum,
 } from "../common/enums";
 import {
-  DerivedAttributeSchema, integer, nonNegativeInt,
+  AtributoDerivadoSchema, integer, nonNegativeInt,
 } from "../common/basic_types";
 
 
@@ -16,7 +16,7 @@ export const CalidadSchema = integer.multipleOf(5);
 const modificadorArmaduraSchema = z.object({
   /** Damage type this modifier applies to. */
   TA: TipoTAEnum,
-  ...DerivedAttributeSchema.shape
+  ...AtributoDerivadoSchema.shape
 });
 
 // ---------------------------------------------------------------------------
@@ -25,7 +25,7 @@ const modificadorArmaduraSchema = z.object({
 const modificadorArmaSchema = z.object({
   /** Skill this modifier affects. */
   nombre: ModificadorArmaEnum,
-  ...DerivedAttributeSchema.shape
+  ...AtributoDerivadoSchema.shape
 });
 
 // ---------------------------------------------------------------------------

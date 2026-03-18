@@ -3,7 +3,7 @@ import { schemaFromEnum } from "../common/utils";
 import {
   HabilidadSobrenaturalBasicaEnum, ConvocatoriaEnum,
 } from "../common/enums";
-import { PDAttributeSchema, TablaEntrySchema } from "../common/basic_types";
+import { AtributoPDSchema, TablaPDSchema } from "../common/basic_types";
 
 
 // ---------------------------------------------------------------------------
@@ -11,15 +11,15 @@ import { PDAttributeSchema, TablaEntrySchema } from "../common/basic_types";
 // ---------------------------------------------------------------------------
 export const HabilidadesSobrenaturalesSchema = z.object({
   /** The four basic supernatural skills — all required when section is present. */
-  ...schemaFromEnum(HabilidadSobrenaturalBasicaEnum, PDAttributeSchema).shape,
+  ...schemaFromEnum(HabilidadSobrenaturalBasicaEnum, AtributoPDSchema).shape,
 
   /** Nivel de magia — optional even when section is present. */
-  nivel_de_magia: PDAttributeSchema.optional(),
+  nivel_de_magia: AtributoPDSchema.optional(),
 
   /** Summoning subsystem — all four required if convocatoria is present. */
-  convocatoria: schemaFromEnum(ConvocatoriaEnum, PDAttributeSchema).optional(),
+  convocatoria: schemaFromEnum(ConvocatoriaEnum, AtributoPDSchema).optional(),
 
   /** Mystic tables purchased. */
-  tablas_misticas: z.array(TablaEntrySchema).optional(),
+  tablas_misticas: z.array(TablaPDSchema).optional(),
 });
 export type HabilidadesSobrenaturales = z.infer<typeof HabilidadesSobrenaturalesSchema>;

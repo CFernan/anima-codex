@@ -4,7 +4,7 @@ import { CaracteristicasPrimariasSchema } from "./characteristic";
 import { CaracteristicasSecundariasSchema } from "./characteristic";
 import { CapacidadesFisicasSchema } from "./characteristic";
 import { ResistenciasSchema } from "./characteristic";
-import { DerivedAttributeSchema } from "../common/basic_types";
+import { AtributoDerivadoSchema } from "../common/basic_types";
 import { PuntosDeCreacionSchema } from "./creation_points";
 import { CategoriaInversionSchema } from "./category";
 import { EquipoSchema } from "./equipment";
@@ -44,7 +44,7 @@ const entradaSchema = z.object({
   caracteristicas_secundarias: CaracteristicasSecundariasSchema,
   capacidades_fisicas:         CapacidadesFisicasSchema,
   resistencias:                ResistenciasSchema,
-  turno_base:                  DerivedAttributeSchema,
+  turno_base:                  AtributoDerivadoSchema,
   puntos_de_creacion:          PuntosDeCreacionSchema,
 
   /** Category investments. At least one required. */

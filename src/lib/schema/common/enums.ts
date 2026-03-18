@@ -31,11 +31,6 @@ export type CapacidadFisica = z.infer<typeof CapacidadFisicaEnum>;
 // ---------------------------------------------------------------------------
 // Secondary skill groups (official — custom groups use z.string())
 // ---------------------------------------------------------------------------
-export const GrupoSecundariasEnum = z.enum([
-  "atleticas", "sociales", "perceptivas", "intelectuales",
-  "vigor", "subterfugio", "creativas", "ki",
-]);
-export type GrupoSecundarias = z.infer<typeof GrupoSecundariasEnum>;
 
 // ---------------------------------------------------------------------------
 // Primary abilities
@@ -104,3 +99,7 @@ export const FamaEnum = z.enum([
 export const AjusteGnosisEnum = z.enum(["pd", "pc"]);
 
 export const CambioCategoriaEnum = z.enum(["previa", "posterior"]);
+
+// ---------------------------------------------------------------------------
+// Exposed engine formulas names
+// ---------------------------------------------------------------------------

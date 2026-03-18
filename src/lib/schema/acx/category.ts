@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { CambioCategoriaEnum } from "../common/enums";
-import { PDAttributeSchema, nonNegativeInt, pd, positiveInt } from "../common/basic_types";
+import { AtributoPDSchema, nonNegativeInt, pd, positiveInt } from "../common/basic_types";
 import { HabilidadesDeCombateSchema } from "./combat_abilities";
 import { HabilidadesSobrenaturalesSchema } from "./supernatural_abilities";
 import { HabilidadesPsiquicasSchema } from "./psychic_abilities";
@@ -31,7 +31,7 @@ export const CategoriaInversionSchema = z.object({
   nivel: positiveInt,
 
   /** Life points PD investment for this category. */
-  puntos_de_vida: PDAttributeSchema.optional(),
+  puntos_de_vida: AtributoPDSchema.optional(),
 
   /** Combat skills investment. arma_desarrollada required if present. */
   habilidades_de_combate: HabilidadesDeCombateSchema.optional(),

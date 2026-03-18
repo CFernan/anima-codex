@@ -22,6 +22,7 @@ Each user story follows this structure:
 | 🔄 In progress | Actively being implemented. |
 | ✅ Done | All acceptance criteria met and committed. |
 | ⏸ Blocked | Cannot proceed due to an unresolved dependency or issue. |
+| ✖️ Cancelled | Won't be finished. |
 
 ---
 
@@ -30,13 +31,14 @@ Each user story follows this structure:
 - ✅ US-01  Project bootstrap
 - ✅ US-02  File extension registration
 - ✅ US-03  Character schema definition         ← superseded, see note
-- 🔲 US-04  Catalog schema definition            ← superseded, see note
-- ⏸ US-05  Base content catalogs
+- ✖️ US-04  Catalog schema definition           ← superseded, see note
+- 🔄 US-05  Base content catalogs
 - 🔲 US-07  Composite attribute resolution
-- 🔲 US-08  Primary characteristic modifier table
+- 🔲 US-08  Primary characteristic modifier table and combat
 - 🔲 US-09  Derived stat computation
 - 🔲 US-10  DP cost resolution
 - 🔲 US-11  Automatic modifier lifecycle
+- 🔲 US-06  Base content catalogs leftovers
 - 🔲 US-27  English and Spanish UI              ← before any UI component
 - 🔲 US-18  Character store & reactive engine integration
 - 🔲 US-12  New character
@@ -175,7 +177,7 @@ for each operating system.
 
 ---
 
-### 🔲 US-04 · Catalog schema definition
+### ✖️ US-04 · Catalog schema definition
 **As a** developer
 **I want** formally defined schemas for game content catalogs
 **so that** base content and custom extensions can be validated consistently.
@@ -199,9 +201,12 @@ for each operating system.
 - 🔲 Define complete pseudo-schema of catalogs format.
 - 🔲 Implement pseudo-schema under `src/lib/schema/catalog`. If needed, move common components from `src/lib/schema/acx` to `src/lib/schema/common`
 
+**Cancelation reason**
+Catalog schemas are being created on demand of base catalogs, done in US-05 and future US.
+
 ---
 
-### ⏸ US-05 · Base content catalogs
+### 🔄 US-05 · Base content catalogs
 **As a** developer
 **I want** the base game content available as validated data
 **so that** it is decoupled from application logic and can be extended.
@@ -210,19 +215,41 @@ for each operating system.
 **Dependencies:** US-04
 
 **Acceptance Criteria:**
-- `src/lib/data/` contains the full official Anima: Beyond Fantasy base catalogs for combat skills, secondary skills, and categories.
+- `src/lib/catalogs/` contains the full official Anima: Beyond Fantasy base catalogs for combat skills, secondary skills, and categories.
 - All entries satisfy their catalog schemas via `satisfies z.input<typeof ...>`.
 - All entries validated against their schemas via unit tests.
 - The application initialises the catalog store at startup from bundled data — no disk read required for base content.
-- Missing or malformed catalog entries are reported without crashing the app.
+- Missing or malformed catalog entries are reported without crashing the app. -> To be done by the engine
 
 **Technical Tasks:**
-- ⏸ Implement base combat and secondary skill catalogs in `src/lib/data/`.
-- ⏸ Implement base category catalog with all 20 official categories in `src/lib/data/`.
-- ⏸ Write unit tests covering schema validation and structural invariants.
-- 🔲 Implement `schema/catalog/` schemas (US-04) and apply `satisfies` to all data files.
+- ✅ Implement base combat and secondary skill catalogs in `src/lib/catalogs/`.
+- ✅ Implement base category catalog with all 20 official categories in `src/lib/catalogs/`.
+- ✅Write unit tests covering schema validation and structural invariants.
+- ✅ Implement `schema/catalog/` schemas (US-04) and apply `satisfies` to all data files.
 - 🔲 Implement catalog store in `src/lib/stores/catalogs.ts` initialised from bundled data.
-- 🔲 Handle malformed catalog entries gracefully — log error, continue loading remainder.
+- 🔲 Handle malformed catalog entries gracefully — log error, continue loading remainder. -> To be done by the engine
+---
+
+### 🔄 US-06 · Base content catalogs leftovers
+**As a** developer
+**I want** the base game content leftovers available as validated data
+**so that** it is decoupled from application logic and can be extended.
+
+**Priority:** MUST
+**Dependencies:** US-04, US-05
+
+**Acceptance Criteria:**
+- `src/lib/catalogs/` contains the full official Anima: Beyond Fantasy base catalogs for basic advantages, disadvantages and weapons.
+- All entries satisfy their catalog schemas via `satisfies z.input<typeof ...>`.
+- All entries validated against their schemas via unit tests.
+- The application initialises the catalog store at startup from bundled data — no disk read required for base content.
+
+**Technical Tasks:**
+- 🔲 Implement base advantages and disadvantages catalogs in `src/lib/catalogs/`.
+- 🔲 Implement base weapons catalog in `src/lib/catalogs/`.
+- 🔲 Write unit tests covering schema validation and structural invariants.
+- 🔲 Implement `schema/catalog/` schemas (US-04) and apply `satisfies` to all data files.
+- 🔲 Update catalog store in `src/lib/stores/catalogs.ts` initialised from bundled data.
 
 ---
 
@@ -328,6 +355,7 @@ for each operating system.
 - When the character's category changes, all category-derived modifiers are recomputed.
 - Manual modifiers (stored in `modificadores_base` / `modificadores_temporales`) are never removed or altered by the engine.
 - The engine produces a complete modifier list by merging persisted manual modifiers with freshly computed automatic ones.
+- Handle malformed catalog entries gracefully
 
 **Technical Tasks:**
 - 🔲 Implement `computeRaceModifiers(raceId: string, catalogs: Catalogs): AttributeModifier[]` in `src/lib/engine/modifiers.ts`.

@@ -4,8 +4,8 @@ import {
   KiCaracteristicaEnum, GradoHechizoEnum, FamaEnum,
 } from "../common/enums";
 import {
-  DerivedAttributeSchema,
-  DirectAttributeSchema,
+  AtributoDerivadoSchema,
+  AtributoDirectoSchema,
   integer,
   nonNegativeInt,
 } from "../common/basic_types";
@@ -28,7 +28,7 @@ const puntosDeKiSchema = z.union([
 
 // Technique/ability maintenance cost — per ki characteristic
 const costeMantenimientoSchema = schemaFromEnum(
-  KiCaracteristicaEnum, DerivedAttributeSchema,
+  KiCaracteristicaEnum, AtributoDerivadoSchema,
 ).partial();
 
 const estadoKiSchema = z.object({
@@ -46,7 +46,7 @@ const estadoKiSchema = z.object({
 // ---------------------------------------------------------------------------
 // Supernatural state
 // ---------------------------------------------------------------------------
-const hechizoCostSchema = DerivedAttributeSchema; // modifiers only — base from catalog
+const hechizoCostSchema = AtributoDerivadoSchema; // modifiers only — base from catalog
 
 const estadoSobrenaturalSchema = z.object({
   /** Current zeon pool. */
@@ -63,7 +63,7 @@ const estadoSobrenaturalSchema = z.object({
   /** Bound creatures and their binding cost. */
   criaturas_atadas: z.array(z.object({
     nombre: z.string(),
-    coste:  DirectAttributeSchema,
+    coste:  AtributoDirectoSchema,
   })).optional(),
 });
 
@@ -93,8 +93,8 @@ export const EstadoSchema = z.object({
 
   /** Global modifiers affecting all actions or physical actions. */
   modificadores_globales: z.object({
-    a_toda_accion: DerivedAttributeSchema,
-    fisicos:       DerivedAttributeSchema,
+    a_toda_accion: AtributoDerivadoSchema,
+    fisicos:       AtributoDerivadoSchema,
   }),
 
   /** Ki state — all characters have ki points. */
