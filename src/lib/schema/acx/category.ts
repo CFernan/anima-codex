@@ -27,8 +27,8 @@ export const CategoriaInversionSchema = z.object({
    */
   categoria: z.string(),
 
-  /** Character level within this category. At least 1. */
-  nivel: positiveInt,
+  /** Character level within this category. At least 0. */
+  nivel: nonNegativeInt,
 
   /** Life points PD investment for this category. */
   puntos_de_vida: AtributoPDSchema.optional(),

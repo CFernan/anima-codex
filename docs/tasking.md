@@ -32,7 +32,7 @@ Each user story follows this structure:
 - ✅ US-02  File extension registration
 - ✅ US-03  Character schema definition         ← superseded, see note
 - ✖️ US-04  Catalog schema definition           ← superseded, see note
-- 🔄 US-05  Base content catalogs
+- ✅ US-05  Base content catalogs
 - 🔲 US-07  Composite attribute resolution
 - 🔲 US-08  Primary characteristic modifier table and combat
 - 🔲 US-09  Derived stat computation
@@ -206,7 +206,7 @@ Catalog schemas are being created on demand of base catalogs, done in US-05 and 
 
 ---
 
-### 🔄 US-05 · Base content catalogs
+### ✅ US-05 · Base content catalogs
 **As a** developer
 **I want** the base game content available as validated data
 **so that** it is decoupled from application logic and can be extended.
@@ -219,15 +219,15 @@ Catalog schemas are being created on demand of base catalogs, done in US-05 and 
 - All entries satisfy their catalog schemas via `satisfies z.input<typeof ...>`.
 - All entries validated against their schemas via unit tests.
 - The application initialises the catalog store at startup from bundled data — no disk read required for base content.
-- Missing or malformed catalog entries are reported without crashing the app. -> To be done by the engine
+- Missing or malformed catalog entries are reported without crashing the app.
 
 **Technical Tasks:**
 - ✅ Implement base combat and secondary skill catalogs in `src/lib/catalogs/`.
 - ✅ Implement base category catalog with all 20 official categories in `src/lib/catalogs/`.
 - ✅Write unit tests covering schema validation and structural invariants.
 - ✅ Implement `schema/catalog/` schemas (US-04) and apply `satisfies` to all data files.
-- 🔲 Implement catalog store in `src/lib/stores/catalogs.ts` initialised from bundled data.
-- 🔲 Handle malformed catalog entries gracefully — log error, continue loading remainder. -> To be done by the engine
+- ✅ Expose base catalogs as a module-level constant in `src/lib/catalogs/index.ts`
+- ✅ Handle malformed catalog entries gracefully — log error, continue loading remainder.
 ---
 
 ### 🔄 US-06 · Base content catalogs leftovers

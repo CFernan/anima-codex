@@ -22,4 +22,5 @@ export const CombateDefinicionSchema = z.object({
 // Combat catalog schema
 // ---------------------------------------------------------------------------
 export const CombateCatalogSchema = schemaFromEnum(HabilidadCombateBasicaEnum, CombateDefinicionSchema);
+export type CombateCatalog = z.infer<typeof CombateCatalogSchema>;
 export type CombateCatalogInput = z.input<typeof CombateCatalogSchema>;

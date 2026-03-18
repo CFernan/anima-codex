@@ -56,7 +56,7 @@
         },
         "categorias": [{
             "categoria": enum,
-            "nivel": positiveInt,
+            "nivel": nonNegativeInt,
             "puntos_de_vida"?: {"pd": nonNegativeInt, modificadores_base?, modificadores_temporales?},
             "habilidades_de_combate"?: {
                 <basicas: habilidad_de_ataque|habilidad_de_parada|habilidad_de_esquiva|llevar_armadura>: {pd, modificadores_base?, modificadores_temporales?},
@@ -83,7 +83,7 @@
                 ],
                 "tablas_de_combate_sobrenatural"?: [{<tabla ... (enum)>: {pd, opciones?}}],
             },
-            "habilidades_sobrenaturales"?: {               
+            "habilidades_sobrenaturales"?: {
                 <basicas zeon|ACT|multiplo_de_regeneracion|proyeccion_magica>: {pd, modificadores_base?, modificadores_temporales?},
                 "nivel_de_magia"?: {pd, modificadores_base?, modificadores_temporales?},
                 "convocatoria"?: {
