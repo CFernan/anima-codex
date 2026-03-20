@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { uniqueValues } from "./utils";
 
 
 // ---------------------------------------------------------------------------
@@ -25,8 +26,16 @@ export const ModificadorAttributoSchema = z.object({
 export type ModificadorAtributo = z.infer<typeof ModificadorAttributoSchema>;
 
 const modifierArrays = z.object({
-  modificadores_base:       z.array(ModificadorAttributoSchema).optional(),
-  modificadores_temporales: z.array(ModificadorAttributoSchema).optional(),
+  modificadores_base:       z.array(ModificadorAttributoSchema)
+    .refine(
+        uniqueValues((m: ModificadorAtributo) => `${m.fuente}|${m.descripcion ?? ""}`),
+        { message: "fuente + descripcion must be unique within modificadores_base" }
+    ).optional(),
+  modificadores_temporales: z.array(ModificadorAttributoSchema)
+    .refine(
+        uniqueValues((m: ModificadorAtributo) => `${m.fuente}|${m.descripcion ?? ""}`),
+        { message: "fuente + descripcion must be unique within modificadores_temporales" }
+    ).optional(),
 });
 
 // ---------------------------------------------------------------------------

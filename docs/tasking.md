@@ -57,6 +57,7 @@ Each user story follows this structure:
 - 🔲 US-26  PDF export
 - 🔲 US-30  Automatic backup on save
 - 🔲 US-15  Recent files
+- 🔲 US-33  Hot catalog — load catalogo_local from opened .acx
 - 🔲 US-24  Custom content directory
 - 🔲 US-31  Auto-save
 - 🔲 US-32  Multiplatform CI/CD pipeline
@@ -679,6 +680,36 @@ Catalog schemas are being created on demand of base catalogs, done in US-05 and 
 - 🔲 Implement the settings UI for selecting the custom content directory.
 - 🔲 Persist the directory path using Tauri's persistent storage.
 - 🔲 Implement the "custom" badge in `Dropdown.svelte` and other catalog-listing components.
+
+---
+
+### 🔲 US-33 · Hot catalog — load catalogo_local from opened .acx
+**As a** developer
+**I want** the engine to merge the character-local catalog into the effective catalog
+when a character file is opened
+**so that** character-specific content (bespoke weapons, custom ki techniques)
+is available during the session without affecting other characters.
+
+**Priority:** MUST
+**Dependencies:** US-13, US-24
+
+**Acceptance Criteria:**
+- When a character file is opened, `catalogo_local` is extracted and validated
+  against the appropriate catalog schemas.
+- Valid entries are merged into the effective catalog with the highest priority
+  (hot > persistent custom > base).
+- Invalid entries produce a per-entry descriptive error; the remainder continue loading.
+- When the character tab is closed, its hot catalog entries are removed from
+  the effective catalog.
+- Hot catalog entries do not persist to other open character tabs.
+
+**Technical Tasks:**
+- 🔲 Implement `loadHotCatalog(catalogoLocal: unknown): CatalogError[]` in
+  `src/lib/catalogs/index.ts` — validates and merges into the effective catalog.
+- 🔲 Invoke `loadHotCatalog` in the file loading flow (US-13) after `CharacterSchema` validation.
+- 🔲 Invoke catalog cleanup on tab close (US-14).
+- 🔲 Write unit tests covering: valid hot entries merged correctly, invalid entries
+  reported without crashing, cleanup on tab close.
 
 ---
 
