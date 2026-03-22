@@ -1,7 +1,7 @@
 # Tasking: Anima Codex — Character Sheet App
-**Version:** 1.2
+**Version:** 1.3
 **Status:** In Progress
-**Related to:** Requirements v3.0 · Architecture v1.3
+**Related to:** Requirements v3.1 · Architecture v1.4
 
 ---
 
@@ -46,6 +46,7 @@ Each user story follows this structure:
 - 🔲 US-14  Unsaved changes guard
 - 🔲 US-28  Schema version compatibility
 - 🔲 US-29  Crash-safe file loading
+- 🔲 US-34  Computed value drift detection
 - 🔲 US-16  Character identity section
 - 🔲 US-17  Primary characteristics section
 - 🔲 US-19  Derived stats section
@@ -156,25 +157,27 @@ for each operating system.
 > **Note:** This US was completed under a previous design. The schema has since
 > been fully redesigned. The current implementation lives in `src/lib/schema/acx/`
 > and `src/lib/schema/common/` as documented in `docs/architecture.md` §5.1 and
-> the normative pseudo-schema in `docs/pseudo_schema_acx.md`. The acceptance
-> criteria below reflect the new design.
+> the normative schema in `docs/acx_schema.yaml`. The acceptance criteria below
+> reflect the new design.
 
 **Priority:** MUST
 **Dependencies:** US-01
 
 **Acceptance Criteria:**
 - `CharacterSchema` is defined in `src/lib/schema/acx/character.ts`.
-- The schema includes `metadata.version_schema`.
-- The schema structure matches `docs/pseudo_schema_acx.md` exactly.
+- The schema includes `metadata.__version_schema`.
+- The schema structure matches `docs/acx_schema.yaml` exactly.
+- The `.acx` file is structured as three top-level sections: `metadata`, `personaje`, and `catalogo_local`.
+- Engine-writable fields (`__` prefix) are optional in the schema to allow loading files where the engine has not yet run.
 - Schemas are split across `src/lib/schema/common/` (shared primitives) and `src/lib/schema/acx/` (character file shape).
 - All TypeScript types are inferred from schemas (`z.infer`/`z.input`), with no manually duplicated type definitions.
 - Exported variable naming convention: uppercase first letter if exported, lowercase if not.
-- Unit tests cover
+- Unit tests cover schema validation for representative `.acx` files.
 
 **Technical Tasks:**
-- ✅ Define complete pseudo-schema of .acx format.
-- ✅ Implement pseudo-schema under src/lib/schema/acx and src/lib/schema/common for global usages.
-- ✅ Add UT for example .acx files
+- ✅ Define complete normative schema of .acx format (`docs/acx_schema.yaml`).
+- ✅ Implement schema under `src/lib/schema/acx` and `src/lib/schema/common` for global usages.
+- ✅ Add unit tests for example .acx files.
 
 ---
 
@@ -196,14 +199,14 @@ for each operating system.
 - Schemas define validation contracts for both base and custom content — the same schema validates both.
 - Catalog schemas depend on `schema/common/` primitives but not on `schema/acx/`.
 - All types inferred from schemas with no manual duplication.
-- Unit tests cover
+- Unit tests cover schema validation.
 
 **Technical Tasks:**
 - 🔲 Define complete pseudo-schema of catalogs format.
-- 🔲 Implement pseudo-schema under `src/lib/schema/catalog`. If needed, move common components from `src/lib/schema/acx` to `src/lib/schema/common`
+- 🔲 Implement pseudo-schema under `src/lib/schema/catalog`. If needed, move common components from `src/lib/schema/acx` to `src/lib/schema/common`.
 
-**Cancelation reason**
-Catalog schemas are being created on demand of base catalogs, done in US-05 and future US.
+**Cancellation reason:**
+Catalog schemas are being created on demand alongside base catalogs, done in US-05 and future US.
 
 ---
 
@@ -225,10 +228,11 @@ Catalog schemas are being created on demand of base catalogs, done in US-05 and 
 **Technical Tasks:**
 - ✅ Implement base combat and secondary skill catalogs in `src/lib/catalogs/`.
 - ✅ Implement base category catalog with all 20 official categories in `src/lib/catalogs/`.
-- ✅Write unit tests covering schema validation and structural invariants.
+- ✅ Write unit tests covering schema validation and structural invariants.
 - ✅ Implement `schema/catalog/` schemas (US-04) and apply `satisfies` to all data files.
-- ✅ Expose base catalogs as a module-level constant in `src/lib/catalogs/index.ts`
+- ✅ Expose base catalogs as a module-level constant in `src/lib/catalogs/index.ts`.
 - ✅ Handle malformed catalog entries gracefully — log error, continue loading remainder.
+
 ---
 
 ### 🔄 US-06 · Base content catalogs leftovers
@@ -240,7 +244,7 @@ Catalog schemas are being created on demand of base catalogs, done in US-05 and 
 **Dependencies:** US-04, US-05
 
 **Acceptance Criteria:**
-- `src/lib/catalogs/` contains the full official Anima: Beyond Fantasy base catalogs for basic advantages, disadvantages and weapons.
+- `src/lib/catalogs/` contains the full official Anima: Beyond Fantasy base catalogs for basic advantages, disadvantages, and weapons.
 - All entries satisfy their catalog schemas via `satisfies z.input<typeof ...>`.
 - All entries validated against their schemas via unit tests.
 - The application initialises the catalog store at startup from bundled data — no disk read required for base content.
@@ -258,23 +262,27 @@ Catalog schemas are being created on demand of base catalogs, done in US-05 and 
 
 ### 🔲 US-07 · Composite attribute resolution
 **As a** developer
-**I want** a module that computes effective and requirement values for any composite attribute
-**so that** the distinction between base, permanent modifiers, and temporary modifiers is enforced consistently.
+**I want** a module that computes the full result structure for any composite attribute
+**so that** the distinction between user input, permanent modifiers, and temporary modifiers
+is enforced consistently and the engine-written `__` fields are always up to date.
 
 **Priority:** MUST
 **Dependencies:** US-03
 
 **Acceptance Criteria:**
-- `effectiveValue(attr: FlexibleAttribute): number` returns `base + sum(modificadores_base) + sum(modificadores_temporales)`.
-- `requirementValue(attr: FlexibleAttribute): number` returns `base + sum(modificadores_base)`.
-- Both functions handle empty modifier arrays correctly.
+- `computeAttributeResults(attr: FlexibleAttribute): AttributeResults` returns an object with:
+  - `__base_calculada` — derived from `base` directly (for `DirectAttribute`) or via PD conversion table (for `PDAttribute`). Zero for `ComputedAttribute`.
+  - `__final_base` — `__base_calculada + sum(modificadores_base)`. Used for requirement evaluation.
+  - `__final_temporal` — `__final_base + sum(modificadores_temporales)`. The value displayed in the UI.
+- Both modifier arrays may be empty or absent; the function handles all cases correctly.
 - Negative modifier values are supported.
-- `DerivedAttribute` (no base field) returns `sum(modifiers)` for effective value.
+- `addModifier(attr, modifier, type: 'base' | 'temporal'): FlexibleAttribute` appends a modifier entry to the correct array.
+- `removeModifier(attr, fuente): FlexibleAttribute` removes all modifier entries with the given source from both arrays.
+- Unit tests cover all three attribute types, empty arrays, negative modifiers, and boundary values.
 
 **Technical Tasks:**
-- 🔲 Implement `effectiveValue` and `requirementValue` in `src/lib/engine/attributes.ts`, handling all three attribute types (`DirectAttribute`, `PDAttribute`, `DerivedAttribute`).
-- 🔲 Implement `addModifier(attr, modifier, type: 'base' | 'temporal'): FlexibleAttribute`.
-- 🔲 Implement `removeModifier(attr, fuente): FlexibleAttribute` — removes all modifiers with the given source from both arrays.
+- 🔲 Implement `computeAttributeResults` in `src/lib/engine/attributes.ts`, handling `DirectAttribute`, `PDAttribute`, and `ComputedAttribute`.
+- 🔲 Implement `addModifier` and `removeModifier` in the same module.
 - 🔲 Write unit tests in `tests/engine/attributes.test.ts`.
 
 ---
@@ -308,10 +316,10 @@ Catalog schemas are being created on demand of base catalogs, done in US-05 and 
 
 **Acceptance Criteria:**
 - The engine computes all derived stats in scope: Characteristic Modifiers, Movement, Initiative, all Resistance values, Life Points.
-- Derived stats use the **requirement value** (not the effective value) of primary characteristics as their input, unless a specific rule states otherwise.
+- Derived stats use `__final_base` (not `__final_temporal`) of primary characteristics as their input, unless a specific rule states otherwise.
 - All Anima-specific rounding rules are applied correctly.
 - Computed values are consistent with the reference `.xlsx` sheet for the same inputs.
-- `DerivedStats` is a TypeScript type in `src/lib/engine/types.ts` — not a Zod schema, as derived values are never persisted.
+- `DerivedStats` is a TypeScript type in `src/lib/engine/types.ts` representing the in-memory computation result — it is not a Zod schema.
 
 **Technical Tasks:**
 - 🔲 Define `DerivedStats` type in `src/lib/engine/types.ts`.
@@ -351,19 +359,19 @@ Catalog schemas are being created on demand of base catalogs, done in US-05 and 
 **Dependencies:** US-07, US-05
 
 **Acceptance Criteria:**
-- Race and category bonuses are computed from the catalog at runtime and never persisted in the `.acx` file.
-- When the character's race changes, all race-derived modifiers are recomputed from the new race's catalog entry.
-- When the character's category changes, all category-derived modifiers are recomputed.
-- Manual modifiers (stored in `modificadores_base` / `modificadores_temporales`) are never removed or altered by the engine.
-- The engine produces a complete modifier list by merging persisted manual modifiers with freshly computed automatic ones.
-- Handle malformed catalog entries gracefully
+- Race and category bonuses are computed from the catalog at runtime and written into `modificadores_base` as entries with `__automatico: true`.
+- Automatic modifier entries are always recomputed from scratch on load and never trusted from the persisted file — the engine overwrites them entirely.
+- When the character's race or category changes, all automatic modifiers are recomputed from the updated catalog entry.
+- Manual modifiers (entries without `__automatico: true`) are never removed or altered by the engine.
+- The engine produces the final modifier list by replacing all previous automatic entries with freshly computed ones and preserving all manual entries.
+- Malformed catalog entries are handled gracefully — logged, skipped, no crash.
 
 **Technical Tasks:**
 - 🔲 Implement `computeRaceModifiers(raceId: string, catalogs: Catalogs): AttributeModifier[]` in `src/lib/engine/modifiers.ts`.
-- 🔲 Implement `computeCategoryModifiers(categories: CategoriaInversion[], catalogs: Catalogs): AttributeModifier[]`.
-- 🔲 Implement `mergeModifiers(manual: AttributeModifier[], automatic: AttributeModifier[]): AttributeModifier[]`.
+- 🔲 Implement `computeCategoryModifiers(categories: InversionPDs[], catalogs: Catalogs): AttributeModifier[]`.
+- 🔲 Implement `mergeModifiers(manual: AttributeModifier[], automatic: AttributeModifier[]): AttributeModifier[]` — replaces all `__automatico: true` entries with the new automatic set, preserving all manual entries.
 - 🔲 Wire these functions into the derived store (US-18) so they are recomputed reactively.
-- 🔲 Write unit tests covering: correct bonus values per race/category, manual modifiers preserved, changes to race/category produce updated automatic modifiers.
+- 🔲 Write unit tests covering: correct bonus values per race/category, manual modifiers preserved, changes to race/category produce updated automatic modifiers, malformed catalog entries skipped gracefully.
 
 ---
 
@@ -385,7 +393,7 @@ Catalog schemas are being created on demand of base catalogs, done in US-05 and 
 - The new tab becomes the active tab automatically.
 
 **Technical Tasks:**
-- 🔲 Implement `defaultCharacter(): Character` in `src/lib/schema/character.ts`.
+- 🔲 Implement `defaultCharacter(): Character` in `src/lib/schema/acx/character.ts`.
 - 🔲 Implement the `File > New` menu action in `MenuBar.svelte`.
 - 🔲 Implement `openNewTab(character, filePath): void` in the app store —
   appends a new tab to the tabs array and sets it as active.
@@ -405,14 +413,14 @@ Catalog schemas are being created on demand of base catalogs, done in US-05 and 
 - `File > Open` shows a native file picker filtered to `.acx` files.
 - After selection, the file is opened in a new tab. If already open, that tab is focused.
 - If the file is invalid, a descriptive error is shown and no new tab is opened.
-- `File > Save` writes `metadata`, `entrada`, and `catalogo_local` as pretty-printed JSON (2-space indent) to the associated file path.
+- `File > Save` writes `metadata`, `personaje`, and `catalogo_local` as pretty-printed JSON (2-space indent) to the associated file path. All engine-computed `__` fields are included as a snapshot of the current session.
 - `File > Save As` shows a native save dialog and writes to the chosen path, updating the active tab's file path.
 - After a successful save, the active tab's unsaved changes indicator is cleared.
 - `Ctrl+S` triggers Save. `Ctrl+Shift+S` triggers Save As.
 
 **Technical Tasks:**
 - 🔲 Implement Tauri commands in `src-tauri/src/commands/file.rs`: `open_file_dialog`, `read_file`, `save_file_dialog`, `write_file`.
-- 🔲 Implement file loading logic: invoke `open_file_dialog`, read content, validate `entrada` with `CharacterSchema`, invoke `openNewTab` or focus existing tab.
+- 🔲 Implement file loading logic: invoke `open_file_dialog`, read content, validate `personaje` with `CharacterSchema`, invoke `openNewTab` or focus existing tab.
 - 🔲 Implement duplicate detection: before opening, check if the file path is already present in any tab's `currentFilePath`.
 - 🔲 Implement file saving logic: serialise with `JSON.stringify(data, null, 2)`, invoke `write_file`, update tab's `currentFilePath` and `isDirty`.
 - 🔲 Implement keyboard shortcut handlers in the layout component.
@@ -504,18 +512,21 @@ Catalog schemas are being created on demand of base catalogs, done in US-05 and 
 
 **Acceptance Criteria:**
 - The section displays all eight characteristics: Agility, Constitution, Dexterity, Strength, Intelligence, Perception, Power, Willpower.
-- For each characteristic, the displayed value is the effective value (`base + all modifiers`).
+- For each characteristic, the displayed value is `__final_temporal`.
+- When `__final_temporal` differs from `__final_base`, the value is visually highlighted to indicate active temporary modifiers.
 - The Characteristic Modifier is displayed alongside each characteristic.
-- A breakdown panel (expandable or on hover) shows: base value, each base modifier with its source and descriptor, each temporary modifier with its source and descriptor.
-- The user can edit the base value directly.
+- A breakdown panel (expandable or on hover) shows: `base`, `__base_calculada`, `__final_base`, `__final_temporal`, each base modifier with its source and descriptor, each temporary modifier with its source and descriptor.
+- The user can edit the `base` value directly.
 - The user can add, edit, and delete manual modifiers (both base and temporary).
-- Automatic modifiers are displayed as read-only.
+- Automatic modifiers (`__automatico: true`) are displayed as read-only.
 - All changes update the character store and trigger reactive recalculation of derived stats.
 
 **Technical Tasks:**
 - 🔲 Implement `PrimaryStats.svelte` iterating over the eight characteristics.
 - 🔲 Implement `NumericInput.svelte` enforcing integer input and rejecting non-numeric characters.
 - 🔲 Implement `ModifierList.svelte` displaying an array of `AttributeModifier` entries, with add/edit/delete controls for manual entries and read-only display for automatic ones.
+- 🔲 Implement `AttributeBreakdown.svelte` as a reusable tooltip/panel showing `base`, `__base_calculada`, `__final_base`, `__final_temporal`, and the modifier list.
+- 🔲 Apply visual highlight when `__final_temporal !== __final_base`.
 - 🔲 Connect base value edits and modifier changes to the character store.
 
 ---
@@ -529,14 +540,13 @@ Catalog schemas are being created on demand of base catalogs, done in US-05 and 
 **Dependencies:** US-07, US-09, US-10
 
 **Acceptance Criteria:**
-- A single writable Svelte store holds the full app state: an array of tabs
-  and the active tab ID.
+- A single writable Svelte store holds the full app state: an array of tabs and the active tab ID.
 - Each tab contains its own `Character` state, `currentFilePath`, and `isDirty`.
 - A derived store `activeTab` always reflects the currently selected tab.
 - A derived store `derivedStats` always reflects `computeDerivedStats` for the active tab's character.
 - A derived store `dpSummary` always reflects `totalDpSpent` and `remainingDp` for the active tab's character.
 - Any mutation to a tab's character sets that tab's `isDirty = true`.
-- No component computes derived values locally; all components read from  derived stores.
+- No component computes derived values locally; all components read from derived stores.
 
 **Technical Tasks:**
 - 🔲 Implement `src/lib/stores/app.ts` with: `appState` (writable), `activeTab` (derived), `derivedStats` (derived), `dpSummary` (derived).
@@ -598,14 +608,14 @@ Catalog schemas are being created on demand of base catalogs, done in US-05 and 
 **Acceptance Criteria:**
 - All secondary abilities from the loaded catalog are displayed, grouped by group (atleticas, sociales, perceptivas, intelectuales, vigor, subterfugio, creativas).
 - The four primary combat abilities (Attack, Block, Dodge, Wear Armor) are displayed.
-- For each ability, the following are displayed: base or pd value, total effective value (with modifier breakdown), DP spent, DP cost for the current category.
-- The user can increase or decrease the pd investment of each ability; DP totals update reactively.
-- The `FlexibleAttribute` model applies to all abilities — pd-based, direct, or derived depending on the catalog definition.
+- For each ability, the following are displayed: `base` or `pd` value, `__final_temporal` (with breakdown panel), DP spent, DP cost for the current category.
+- When `__final_temporal` differs from `__final_base`, the value is visually highlighted.
+- The user can increase or decrease the `pd` investment of each ability; DP totals update reactively.
 - Manual modifiers can be added to any ability.
 
 **Technical Tasks:**
 - 🔲 Implement `Abilities.svelte` iterating over abilities grouped by catalog group.
-- 🔲 Reuse `NumericInput.svelte` and `ModifierList.svelte` from US-17.
+- 🔲 Reuse `NumericInput.svelte`, `ModifierList.svelte`, and `AttributeBreakdown.svelte` from US-17.
 - 🔲 Implement ability update helpers in the character store (`setAbilityPd`, `addAbilityModifier`).
 - 🔲 Derive ability effective values through the `derivedStats` store or a dedicated `abilityStats` derived store.
 
@@ -620,16 +630,16 @@ Catalog schemas are being created on demand of base catalogs, done in US-05 and 
 **Dependencies:** US-18
 
 **Acceptance Criteria:**
-- The description section includes a `trasfondo` long-form text field with Markdown support.
-- The `notas` section allows adding free-form note entries grouped by user-defined section name.
+- The description section includes a `trasfondo` long-form text field supporting rich text content (e.g. HTML), allowing formatting with paragraphs, bold, italic, and lists.
+- The `notas` section allows adding free-form note entries each with a section name and rich text content.
 - Multiple images can be attached; they are stored as relative paths in `descripcion.imagenes`.
 - All fields are persisted in the character store and saved with the character file.
 
 **Technical Tasks:**
 - 🔲 Implement `Description.svelte` with trasfondo, notas, and imagenes fields.
-- 🔲 Implement `MarkdownEditor.svelte` with a simple Markdown renderer (evaluate `marked` or `micromark`).
+- 🔲 Implement `RichTextEditor.svelte` with a rich text renderer supporting HTML content (evaluate a lightweight editor such as `tiptap` or similar).
 - 🔲 Implement image attachment via Tauri file dialog — stores relative path, displays image from path.
-- 🔲 Implement notes section with add/remove section entries.
+- 🔲 Implement notes section with add/remove entries, each with section name and rich text content field.
 
 ---
 
@@ -694,22 +704,17 @@ is available during the session without affecting other characters.
 **Dependencies:** US-13, US-24
 
 **Acceptance Criteria:**
-- When a character file is opened, `catalogo_local` is extracted and validated
-  against the appropriate catalog schemas.
-- Valid entries are merged into the effective catalog with the highest priority
-  (hot > persistent custom > base).
+- When a character file is opened, `catalogo_local` is extracted and validated against the appropriate catalog schemas.
+- Valid entries are merged into the effective catalog with the highest priority (hot > persistent custom > base).
 - Invalid entries produce a per-entry descriptive error; the remainder continue loading.
-- When the character tab is closed, its hot catalog entries are removed from
-  the effective catalog.
+- When the character tab is closed, its hot catalog entries are removed from the effective catalog.
 - Hot catalog entries do not persist to other open character tabs.
 
 **Technical Tasks:**
-- 🔲 Implement `loadHotCatalog(catalogoLocal: unknown): CatalogError[]` in
-  `src/lib/catalogs/index.ts` — validates and merges into the effective catalog.
+- 🔲 Implement `loadHotCatalog(catalogoLocal: unknown): CatalogError[]` in `src/lib/catalogs/index.ts` — validates and merges into the effective catalog.
 - 🔲 Invoke `loadHotCatalog` in the file loading flow (US-13) after `CharacterSchema` validation.
 - 🔲 Invoke catalog cleanup on tab close (US-14).
-- 🔲 Write unit tests covering: valid hot entries merged correctly, invalid entries
-  reported without crashing, cleanup on tab close.
+- 🔲 Write unit tests covering: valid hot entries merged correctly, invalid entries reported without crashing, cleanup on tab close.
 
 ---
 
@@ -794,7 +799,7 @@ is available during the session without affecting other characters.
 **Dependencies:** US-03, US-13
 
 **Acceptance Criteria:**
-- Every character file includes a `metadata.version_schema` field.
+- Every character file includes a `metadata.__version_schema` field.
 - If the file's schema version matches the application's supported version, it loads normally.
 - If the file's schema version is older but migration logic exists, the file is migrated silently and marked as modified.
 - If the file's schema version is unsupported (too new or unrecognised), an error is shown and the file is not loaded.
@@ -824,6 +829,30 @@ is available during the session without affecting other characters.
 - 🔲 Wrap all file loading operations in `try/catch` blocks in the frontend.
 - 🔲 Implement a `Notification.svelte` or toast component for displaying errors non-modally.
 - 🔲 Ensure Zod validation errors produce human-readable messages (use `.safeParse()` and format the error output).
+
+---
+
+### 🔲 US-34 · Computed value drift detection
+**As a** user
+**I want** to be notified when the engine's recomputed values differ from those stored in the file I opened
+**so that** I can detect and understand changes caused by engine updates, catalog changes, or manual file edits.
+
+**Priority:** SHOULD
+**Dependencies:** US-07, US-09, US-11, US-13
+
+**Acceptance Criteria:**
+- After opening a file and recomputing all `__` fields, the engine compares the freshly computed values against those read from the file.
+- If any discrepancy is detected, a non-blocking warning panel is shown listing each affected attribute with: its name, the persisted value, and the newly computed value.
+- Warnings do not prevent the character from loading or being used.
+- The engine's freshly computed values always take precedence over the persisted `__` values.
+- If no `__` fields are present in the file (e.g. a freshly created file), no comparison is performed and no warning is shown.
+- The warning panel can be dismissed by the user.
+
+**Technical Tasks:**
+- 🔲 Implement `detectDrift(persisted: Character, recomputed: Character): DriftWarning[]` in `src/lib/engine/drift.ts`, comparing all `__` fields between the two character states.
+- 🔲 Invoke `detectDrift` in the file loading flow (US-13) after the engine recomputes all values.
+- 🔲 Implement `DriftWarningPanel.svelte` to display the list of discrepancies non-modally.
+- 🔲 Write unit tests covering: no drift when values match, correct warnings when values differ, no warnings when `__` fields are absent.
 
 ---
 

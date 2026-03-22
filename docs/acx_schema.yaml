@@ -1,0 +1,438 @@
+# --- Leyenda ---
+# Nombre               | Descripcion
+# ----------------------------------------------------------------------------------
+# .tipos_basicos       | Campo auxiliar que contiene tipos auxiliares reutilizables
+#                      |   no presente en el schema final.
+# <clave>: <tipo>      | El valor de cada clave simple contiene el tipo en el schema
+#                      |   (string, bool, integer, float, tipos compuestos, etc.)
+# <clave>: ? <tipo>    | El campo es opcional, si está vacío no aparece. El caso
+#                      |   vacío es equivalente al valor base ("", 0, false). En el
+#                      |   caso de bools, si el valor es false, no aparece.
+# <clave>: <tipo>[]    | El campo es un array del tipo en <valor>
+# <clave>: <t1> | <t2> | El tipo de <clave> puede ser <t1> o <t2>
+# __<clave>: <tipo>    | El campo es privado, lo que quiere decir que no es
+#                      |   modificable por el usuario, lo calcula el engine. El
+#                      |   engine puede escribir tanto en campos públicos como
+#                      |   privados.
+# <<: <valor>          | Indica que el objeto <valor> es heredado por el objeto
+#                      |   actual
+# <t>.multipleOf(<v>)  | Refiere a que el valor del tipo <t> es múltiplo de <v>
+# <t>.enum(<v1>|<v2>)  | Refiere a que el tipo <t> es un enum cerrado de valores
+#                      |   <v1>, <v2, etc.
+
+
+# --- DEFINICIONES DE TIPOS (REUTILIZABLES) ---
+.tipos_basicos:
+  modificadorAtributo:
+    fuente:       string
+    valor:        int
+    descripcion:  ? string
+    __automatico: ? bool
+
+  modificadores:
+    modificadores_base:       ? modificadorAtributo[]
+    modificadores_temporales: ? modificadorAtributo[]
+
+  resultadoAtributo:
+    __base_calculada: ? int
+    __final_base:     ? int
+    __final_temporal: ? int
+
+  atributoDirecto:
+    base: positiveInt
+    <<:   modificadores
+    <<:   resultadoAtributo
+
+  atributoPD:
+    pd: nonNegativeInt
+    <<: modificadores
+    <<: resultadoAtributo
+
+  atributoCalculado:
+    <<: modificadores
+    <<: resultadoAtributo
+
+  nombreConOpciones:
+    nombre:   string
+    opciones: ? unknown
+
+  pdConOpciones:
+    pd: nonNegativeInt
+    <<: nombreConOpciones
+
+  rendimientoTA:
+    fil: ? atributoCalculado
+    con: ? atributoCalculado
+    pen: ? atributoCalculado
+    cal: ? atributoCalculado
+    ele: ? atributoCalculado
+    fri: ? atributoCalculado
+    ene: ? atributoCalculado
+
+  rendimientoArma:
+    turno:                ? atributoCalculado
+    habilidad_de_ataque:  ? atributoCalculado
+    habilidad_de_parada:  ? atributoCalculado
+    habilidad_de_esquiva: ? atributoCalculado
+    daño:                 ? rendimientoTA
+
+  calidad: int.multipleOf(5)
+
+  definicionArma:
+    nombre:        string
+    calidad:       ? calidad
+    tamaño:        ? string.enum(normal|enorme|gigante)
+    a_dos_manos:   ? bool
+    mano_no_habil: ? bool
+    rendimiento:   rendimientoArma
+    municion:      ?
+      nombre:      string
+      calidad:     ? calidad
+      tamaño:      ? string.enum(normal|enorme|gigante)
+      rendimiento: ? rendimientoArma
+
+  costeEfectoTecnicaKi:
+    activacion:        positiveInt
+    mantenimiento:     ? positiveInt
+    alteracion_por_cm: ? int
+
+  kiGenerico:
+    total: nonNegativeInt
+
+  kiPorCaracteristica:
+    agi: nonNegativeInt
+    des: nonNegativeInt
+    con: nonNegativeInt
+    fue: nonNegativeInt
+    pod: nonNegativeInt
+    vol: nonNegativeInt
+
+  atributoCV:
+    <<:             atributoCalculado
+    cvs_invertidos: nonNegativeInt
+
+# --- ESQUEMA PRINCIPAL ---
+metadata:
+  __version_schema:  string
+  __marca_de_tiempo: date
+  jugador:           string
+
+personaje:
+  nombre: string
+  raza: nombreConOpciones
+  descripcion: ?
+    edad:              ? string | number
+    peso:              ? string | number
+    altura:            ? string | number
+    sexo:              ? string
+    region:            ? string
+    clase_social:      ? string
+    trasfondo:         ? string
+    imagenes:          ? string[]
+    <campo_adicional>: ? string | number | bool
+
+  caracteristicas_del_ser:
+    tipo:                   nombreConOpciones
+    gnosis:                 nonNegativeInt
+    __natura:               ? int
+    acumulacion_de_daño:    ? bool
+    creado_con_magia:       ? bool
+    criatura_con_pcs:       ? bool
+    habilidades_esenciales: ? pdConOpciones[]
+    poderes:                ? pdConOpciones[]
+
+  caracteristicas_primarias:
+    agi: atributoDirecto
+    con: atributoDirecto
+    des: atributoDirecto
+    fue: atributoDirecto
+    int: atributoDirecto
+    per: atributoDirecto
+    pod: atributoDirecto
+    vol: atributoDirecto
+
+  caracteristicas_secundarias:
+    apariencia: atributoDirecto
+    tamaño:     ? atributoCalculado
+
+  capacidades_fisicas:
+    turno_base:         ? atributoCalculado
+    pvs:                ? atributoCalculado
+    tipo_de_movimiento: ? atributoCalculado
+    indice_de_peso:     ? atributoCalculado
+    cansancio:          ? atributoCalculado
+    regeneracion:       ? atributoCalculado
+    acciones_maximas:   ? atributoCalculado
+
+  resistencias:
+    presencia: ? atributoCalculado
+    rf:        ? atributoCalculado
+    rv:        ? atributoCalculado
+    re:        ? atributoCalculado
+    rm:        ? atributoCalculado
+    rp:        ? atributoCalculado
+
+  puntos_de_creacion:
+    ventajas:          nombreConOpciones[]
+    desventajas:       ? nombreConOpciones[]
+    pcs_liberalizados: ?
+    - <<:                  nombreConOpciones
+      eliminar_desventaja: ? bool
+
+  inversion_pds: ?
+    __pds_invertidos: ? nonNegativeInt
+    __pds_totales:    ? nonNegativeInt
+
+    categorias:
+    - categoria: string
+      nivel:     nonNegativeInt
+
+      __pds_invertidos: ? nonNegativeInt
+      __pds_totales:    ? positiveInt
+
+      puntos_de_vida: ? atributoPD
+
+      habilidades_de_combate: ?
+        habilidad_de_ataque:  atributoPD
+        habilidad_de_parada:  atributoPD
+        habilidad_de_esquiva: atributoPD
+        llevar_armadura:      atributoPD
+        arma_desarrollada:    string
+
+        habilidades_del_ki: ?
+          puntos_de_ki: ?
+            agi: ? atributoPD
+            con: ? atributoPD
+            des: ? atributoPD
+            fue: ? atributoPD
+            pod: ? atributoPD
+            vol: ? atributoPD
+
+          acumulaciones_de_ki: ?
+            agi: ? atributoPD
+            con: ? atributoPD
+            des: ? atributoPD
+            fue: ? atributoPD
+            pod: ? atributoPD
+            vol: ? atributoPD
+
+          conocimiento_marcial: ? atributoPD
+
+        tablas_de_armas:                ? pdConOpciones[]
+        tablas_de_estilos:              ? pdConOpciones[]
+        artes_marciales:                ? pdConOpciones[]
+        ars_magnus:                     ? pdConOpciones[]
+        tablas_de_combate_sobrenatural: ? pdConOpciones[]
+
+      habilidades_sobrenaturales: ?
+        zeon:                     atributoPD
+        ACT:                      atributoPD
+        multiplo_de_regeneracion: atributoPD
+        proyeccion_magica:        atributoPD
+        nivel_de_magia:           ? atributoPD
+        tablas_misticas:          ? pdConOpciones[]
+
+        convocatoria: ?
+          convocar:    atributoPD
+          controlar:   atributoPD
+          atar:        atributoPD
+          desconvocar: atributoPD
+
+      habilidades_psiquicas: ?
+        CV:                  atributoPD
+        proyeccion_psiquica: atributoPD
+        tablas_psiquicas:    ? pdConOpciones[]
+        patrones_mentales:   ? pdConOpciones[]
+
+      habilidades_secundarias: ?
+        <grupo>: ?
+          <habilidad>: ? atributoPD | atributoCalculado | atributoDirecto
+
+      pd_cambio_de_categoria: ?
+        previa:    ? nonNegativeInt
+        posterior: ? nonNegativeInt
+
+  equipo: ?
+    armas: ?
+    - <<:               definicionArma
+      armas_combinadas: ? definicionArma[]
+
+    armadura: ?
+      capas: ?
+      - nombre:    string
+        calidad:   ? calidad
+        encantada: ? bool
+        TA:        rendimientoTA
+
+      TA_final: rendimientoTA
+
+    inventario: ?
+    - nombre:      string
+      descripcion: ? string
+      peso:        ? float
+
+  ki: ?
+    habilidades_del_ki:      ? nombreConOpciones[]
+    habilidades_del_nemesis: ? nombreConOpciones[]
+
+    tecnicas_del_dominio: ?
+    - arbol: string
+      tecnicas:
+      - nombre:      string
+        descripcion: ? string
+        nivel:       ? positiveInt.enum(1|2|3)
+        combinable:  ? bool
+        efectos:
+        - nombre:        string
+          opciones:      string[]
+          mantenimiento: ? string.enum(mantenido|sostenimiento_menor|sostenimiento_mayor)
+          coste:
+            agi: ? costeEfectoTecnicaKi
+            con: ? costeEfectoTecnicaKi
+            des: ? costeEfectoTecnicaKi
+            fue: ? costeEfectoTecnicaKi
+            pod: ? costeEfectoTecnicaKi
+            vol: ? costeEfectoTecnicaKi
+
+        desventajas: ? nombreConOpciones[]
+
+    limites:           ? string[]
+    sellos_del_dragon: ? string[]
+
+    invocacion_por_ki: ?
+      sellos_de_invocacion: string[]
+      pactos:
+      - criatura: string
+        sellos:
+          <sello>: nonNegativeInt
+
+  misticos: ?
+    niveles_de_magia: ?
+      vias: ?
+      - nombre:                string
+        invertido:             nonNegativeInt
+        subvia:                ? string
+        conjuros_libre_acceso: ?
+        - nombre:             string
+          nivel_libre_acceso: positiveInt
+
+      conjuros_seleccionados: ? string[]
+
+    teorema_de_magia: ? nombreConOpciones
+    metamagia:        ?
+    - <<: nombreConOpciones
+      id: positiveInt
+
+    especialidad_convocatoria: ? string
+    invocaciones:              ? string[]
+    encarnaciones:             ? string[]
+    sheele:                    ? unknown
+    pacto_del_dragon:          ?
+      sacrificio:         string
+      descripcion_dragon: string
+
+  psiquicos: ?
+    potencial_psiquico:
+      <<:            atributoCV
+      cristales_psi: nonNegativeInt
+
+    innatos: atributoCV
+    disciplinas:
+    - disciplina: string
+      poderes:
+      - nombre: string
+        fortalecimiento: ? atributoCV
+
+  habilidades_secundarias: ?
+    <grupo>: ?
+      <habilidad>: ? atributoCalculado
+
+  elan: ?
+  - nombre: string
+    nivel:  positiveInt
+    dones:  string[]
+
+  ajustes_de_nivel: ?
+    __ajuste_por_raza:    ? nonNegativeInt
+    ajuste_por_gnosis_pc: ? bool
+    ajuste_por_legados:   ? bool
+    artefacto_vinculado:  ? bool
+    pds_adicionales:      ? nonNegativeInt
+
+  cordura: ?
+    salud_mental:     atributoCalculado
+    umbral_de_locura: atributoCalculado
+
+  estado:
+    experiencia: ?
+      actual:            nonNegativeInt
+      __siguiente_nivel: ? nonNegativeInt
+
+    pv:        int
+    cansancio: nonNegativeInt
+
+    indice_de_peso: ?
+      __peso_natural: ? float
+      __peso_maximo:  ? float
+      __peso_cargado: ? float
+
+    modificadores_globales: ?
+      a_toda_accion: ? atributoCalculado
+      fisicos:       ? atributoCalculado
+
+    ki: ?
+      puntos_de_ki: kiGenerico | kiPorCaracteristica
+
+      tecnicas_y_habilidades_mantenidas: ?
+      - nombre: string
+        coste:
+          agi: ? atributoCalculado
+          des: ? atributoCalculado
+          con: ? atributoCalculado
+          fue: ? atributoCalculado
+          pod: ? atributoCalculado
+          vol: ? atributoCalculado
+
+    sobrenatural: ?
+      zeon:                nonNegativeInt
+      zeon_acumulado:      ? nonNegativeInt
+      hechizos_mantenidos: ?
+      - nombre: string
+        grado:  string.enum(base|intermedio|avanzado|arcano)
+        coste:  ? atributoCalculado
+
+      criaturas_atadas: ?
+      - nombre: string
+        coste:  ? atributoDirecto
+
+    mentalismo: ?
+      CVs_libres:
+        gastados:              nonNegativeInt
+        invertidos_en_innatos: ? nonNegativeInt
+      turnos_concentrados: ? positiveInt
+      poderes_mantenidos:  ?
+      - nombre:    string
+        potencial: atributoCalculado
+
+    puntos_de_destino: ?
+      totales: nonNegativeInt
+      usados:  nonNegativeInt
+
+    fama: ?
+      audacia:       ? nonNegativeInt
+      honorabilidad: ? nonNegativeInt
+      habilidad:     ? nonNegativeInt
+      cobardia:      ? nonNegativeInt
+      infamia:       ? nonNegativeInt
+      __total:       ? nonNegativeInt
+
+    salud_mental: ? nonNegativeInt
+    trastornos:   ? string[]
+
+  idiomas: ? string[]
+
+  notas: ?
+  - seccion:   string
+    contenido: string
+
+catalogo_local: unknown

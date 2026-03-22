@@ -1,5 +1,5 @@
 # Requirements Specification: Anima Codex — Character Sheet App
-**Version:** 3.0
+**Version:** 3.1
 **Status:** Active
 
 ---
@@ -73,8 +73,9 @@ for the core subsystems.
 - **[MUST]** All character data shall be stored in JSON format, readable by both humans and machines.
 - **[MUST]** The use of binary or proprietary formats for primary storage is prohibited.
 - **[MUST]** JSON files shall always be pretty-printed (2-space indentation) to maximise human readability.
-- **[MUST]** The character data schema shall be formally defined and versioned via `metadata.version_schema`, so that the application can detect and reject files with an incompatible format.
+- **[MUST]** The character data schema shall be formally defined and versioned via `metadata.__version_schema`, so that the application can detect and reject files with an incompatible format. This field is managed exclusively by the engine and is never modified directly by the user.
 - **[SHOULD]** When loading a file, the application shall validate its structure against the defined schema and display a descriptive error if the file is malformed, instead of producing a silent failure or crash.
+- **[COULD]** In a future iteration, the `.acx` file format shall be migrated from JSON to YAML, to improve human readability. The backend shall handle the YAML↔JSON conversion transparently, with no impact on the frontend or the schema definition.
 
 ### 3.2 Migration from Legacy Format (Out of Scope — First Phase)
 
@@ -105,8 +106,7 @@ for the core subsystems.
 - **[MUST]** The sheet shall support multiclass characters — a character may belong to one or more categories simultaneously, each with its own PD investment.
 - **[MUST]** The sheet shall include the selection of one or more categories from all available options.
 - **[MUST]** The sheet shall include a section for Secondary Abilities and Primary Combat Abilities, accounting for Development Points (DP) and the costs per category.
-- **[MUST]** The sheet shall include free-text fields for background and notes, and support attaching multiple image files via relative path references.
-- **[SHOULD]** Long-form text fields shall support basic Markdown formatting (bold, italic, lists).
+- **[MUST]** The sheet shall include free-text fields for background and notes. These fields support rich text content (e.g. HTML), allowing the user to format text with paragraphs, bold, italic, and lists. Multiple image files may be attached via relative path references.
 - **[WON'T]** This version shall not include engine support for Magic, Ki, or Psychic subsystems. The schema accommodates these fields, but computed values and catalog validation for these subsystems are deferred.
 
 ### 4.3 Reactive Computation Engine
@@ -114,13 +114,18 @@ for the core subsystems.
 - **[MUST]** Any change to a Primary Characteristic or a Primary or Secondary Ability shall trigger the immediate and visible recalculation of all dependent values, without requiring any additional action from the user.
 - **[MUST]** The engine shall support lookups against predefined value tables (e.g. Resistance tables based on Presence).
 - **[MUST]** Computation formulas are implemented as pure TypeScript functions within the engine module. They are not embedded in UI components and have no dependencies on the presentation layer.
-- **[MUST]** Every attribute on the character sheet (primary characteristics, primary and secondary abilities, and derived values such as Initiative or Regeneration) shall be represented as a composite value with three distinct layers:
-  1. **Base value** — the raw value assigned to the character.
-  2. **Base modifiers** — an array of permanent bonuses or penalties applied on top of the base value. Each entry carries a numeric value (positive or negative), an engine-generated or player-defined source identifier, and an optional human-readable descriptor. These modifiers are counted when evaluating attribute requirements.
+- **[MUST]** Every attribute on the character sheet (primary characteristics, primary and secondary abilities, and derived values such as Initiative or Regeneration) shall be represented as a composite value with the following structure:
+  1. **User input** — either a `base` value (set directly by the user, always ≥ 1) or a `pd` investment (Development Points allocated by the user, ≥ 0). Purely derived attributes have neither.
+  2. **Base modifiers** — an array of permanent bonuses or penalties. Each entry carries a numeric value (positive or negative), a source identifier, and an optional human-readable descriptor. These modifiers are counted when evaluating attribute requirements.
   3. **Temporary modifiers** — an array of transient bonuses or penalties. Same structure as base modifiers. These are excluded when evaluating attribute requirements.
+  4. **Computed results** (engine-managed, read-only for the user):
+     - `__base_calculada` — the value derived by the engine from the user input via the applicable formula (e.g. PD-to-value conversion table, or characteristic formula). For `base`-type attributes this equals `base` directly.
+     - `__final_base` — `__base_calculada + sum(base_modifiers)`. Used for requirement evaluation.
+     - `__final_temporal` — `__final_base + sum(temporary_modifiers)`. The value displayed in the UI under normal conditions.
 - **[MUST]** Modifiers may be automatic (computed and managed by the rules engine based on other sheet values) or manual (explicitly created, edited, and deleted by the player). Automatic modifiers shall be read-only from the user's perspective.
-- **[MUST]** The effective displayed value of any attribute shall be `base + sum(base_modifiers) + sum(temporary_modifiers)`. The value used for requirement evaluation shall be `base + sum(base_modifiers)`.
-- **[SHOULD]** Any attribute may be explicitly marked as exempt from this composite model and treated as a simple scalar value, where the added complexity provides no benefit.
+- **[MUST]** The UI shall display `__final_temporal` as the effective value of any attribute. When `__final_temporal` differs from `__final_base`, the value shall be visually highlighted to indicate that temporary modifiers are active.
+- **[MUST]** The UI shall provide a detail view (e.g. tooltip or expandable panel) for any attribute, showing the full breakdown: user input, `__base_calculada`, `__final_base`, `__final_temporal`, and the list of all modifiers with their source, value, and descriptor. Automatic modifiers are shown as read-only; manual modifiers include edit and delete controls.
+- **[SHOULD]** When a character file is opened, the engine shall recompute all derived values from scratch and compare them against the computed values persisted in the file (`__base_calculada`, `__final_base`, `__final_temporal`, and automatic modifiers). If any discrepancy is detected, the application shall display a per-attribute warning listing which values changed and by how much. Discrepancies are non-blocking — the engine's freshly computed values always take precedence. Typical causes include engine updates, catalog changes between sessions, or manual edits to the `.acx` file with a text editor.
 - **[WON'T]** Computation formulas shall not be exposed for modification via external files in this version. This capability will be evaluated in a future iteration once an adequate validation mechanism is defined.
 
 ### 4.4 Input Validation
