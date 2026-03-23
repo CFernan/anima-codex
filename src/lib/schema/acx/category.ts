@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { CambioCategoriaEnum } from "../common/enums";
-import { AtributoPDSchema, nonNegativeInt, pd, positiveInt } from "../common/basic_types";
+import { AtributoPDSchema, NonNegativeInt, PD, PositiveInt } from "../common/basic_types";
 import { HabilidadesDeCombateSchema } from "./combat_abilities";
 import { HabilidadesSobrenaturalesSchema } from "./supernatural_abilities";
 import { HabilidadesPsiquicasSchema } from "./psychic_abilities";
-import { HabilidadesSecundariasSchema } from "./secondary_abilities";
+import { HabilidadesSecundariasCategoriaSchema } from "./secondary_abilities";
 
 
 // ---------------------------------------------------------------------------
@@ -12,9 +12,9 @@ import { HabilidadesSecundariasSchema } from "./secondary_abilities";
 // previa:   PD paid by the outgoing class
 // posterior: PD paid by the incoming class
 // ---------------------------------------------------------------------------
-const cambioDeCategoriaSchema = z.object({
-  previa:    z.object({ pd: pd }).optional(),
-  posterior: z.object({ pd: pd }).optional(),
+const pdCambioDeCategoriaSchema = z.object({
+  previa:    PD.optional(),
+  posterior: PD.optional(),
 } satisfies Record<z.infer<typeof CambioCategoriaEnum>, z.ZodTypeAny>);
 
 // ---------------------------------------------------------------------------
@@ -25,27 +25,38 @@ export const CategoriaInversionSchema = z.object({
    * Category name. Validated against categories catalog at runtime.
    * e.g. "Guerrero", "Hechicero"
    */
-  categoria: z.string(),
+  categoria:        z.string(),
 
   /** Character level within this category. At least 0. */
-  nivel: nonNegativeInt,
+  nivel:            NonNegativeInt,
+
+  //** Computed by engine values */
+  __pds_invertidos: NonNegativeInt.optional(),
+  __pds_totales:    PositiveInt.optional(),
 
   /** Life points PD investment for this category. */
-  puntos_de_vida: AtributoPDSchema.optional(),
+  puntos_de_vida:   AtributoPDSchema.optional(),
 
   /** Combat skills investment. arma_desarrollada required if present. */
-  habilidades_de_combate: HabilidadesDeCombateSchema.optional(),
+  habilidades_de_combate:     HabilidadesDeCombateSchema.optional(),
 
   /** Supernatural skills investment. */
   habilidades_sobrenaturales: HabilidadesSobrenaturalesSchema.optional(),
 
   /** Psychic skills investment. */
-  habilidades_psiquicas: HabilidadesPsiquicasSchema.optional(),
+  habilidades_psiquicas:      HabilidadesPsiquicasSchema.optional(),
 
   /** Secondary skills investment. */
-  habilidades_secundarias: HabilidadesSecundariasSchema.optional(),
+  habilidades_secundarias:    HabilidadesSecundariasCategoriaSchema.optional(),
 
   /** PD cost of class transition (multiclass). */
-  cambio_de_categoria: cambioDeCategoriaSchema.optional(),
+  pd_cambio_de_categoria:     pdCambioDeCategoriaSchema.optional(),
 });
 export type CategoriaInversion = z.infer<typeof CategoriaInversionSchema>;
+
+export const InversionPdsSchema = z.object({
+  __pds_invertidos: NonNegativeInt.optional(),
+  __pds_totales:    NonNegativeInt.optional(),
+  categorias:       z.array(CategoriaInversionSchema),
+})
+export type InversionPds = z.infer<typeof InversionPdsSchema>;

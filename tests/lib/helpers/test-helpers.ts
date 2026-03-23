@@ -1,4 +1,4 @@
-import { type ZodSafeParseResult } from "zod";
+import { z, type ZodSafeParseResult } from "zod";
 
 /**
  * Represents a processed test case ready for use in `it.each`.
@@ -21,7 +21,7 @@ export function autoLabels<SW extends Record<string, any>, D extends Record<stri
 ): SchemaLabeledTestCase<SW, D>[] {
   return cases.map(([wrapper, data]) => {
     const entries = Object.entries(wrapper);
-    
+
     if (entries.length === 0) {
       throw new Error("autoLabels: The wrapper object must contain at least one key.");
     }
@@ -86,5 +86,66 @@ export function assertInvalid(
     }
 
     throw error;
+  }
+}
+
+
+/**
+ * Recursively applies .strict() to all ZodObject nodes in a schema.
+ * Use only in tests to verify example files have no unknown fields.
+ * Production schemas remain permissive to allow forward compatibility.
+ */
+export function makeStrict<T extends z.ZodTypeAny>(schema: T): T {
+  if (schema == null) return schema;
+
+  const def = (schema as any).def ?? (schema as any)._zod?.def;
+  if (!def) return schema;
+
+  const type = def.type as string;
+
+  switch (type) {
+    case "object": {
+      const obj = schema as unknown as z.ZodObject<z.ZodRawShape>;
+      const strictShape = Object.fromEntries(
+        Object.entries(obj.shape).map(([k, v]) => [k, makeStrict(v as z.ZodTypeAny)])
+      ) as z.ZodRawShape;
+      return z.strictObject(strictShape) as unknown as T;
+    }
+
+    case "array": {
+      if (!def.element) return schema;
+      const element = makeStrict(def.element as z.ZodTypeAny);
+      return z.array(element) as unknown as T;
+    }
+
+    case "optional": {
+      if (!def.inner) return schema;
+      const inner = makeStrict(def.inner as z.ZodTypeAny);
+      return z.optional(inner) as unknown as T;
+    }
+
+    case "union": {
+      if (!def.options) return schema;
+      const options = (def.options as z.ZodTypeAny[]).map(makeStrict);
+      return z.union(options as [z.ZodTypeAny, z.ZodTypeAny, ...z.ZodTypeAny[]]) as unknown as T;
+    }
+
+    case "record": {
+      if (!def.keyType || !def.valueType) return schema;
+      const keyType   = def.keyType as z.core.$ZodRecordKey;
+      const valueType = makeStrict(def.valueType as z.ZodTypeAny);
+      return z.record(keyType, valueType) as unknown as T;
+    }
+
+    case "transform":
+    case "preprocess":
+    case "pipe": {
+      const inner = def.schema ?? def.in ?? def.first;
+      if (!inner) return schema;
+      return makeStrict(inner as z.ZodTypeAny) as unknown as T;
+    }
+
+    default:
+      return schema;
   }
 }

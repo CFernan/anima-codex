@@ -3,7 +3,7 @@ import { schemaFromEnum } from "../common/utils";
 import {
   HabilidadCombateBasicaEnum, KiCaracteristicaEnum,
 } from "../common/enums";
-import { AtributoPDSchema, TablaPDSchema } from "../common/basic_types";
+import { AtributoPDSchema, PdConOpcionesSchema } from "../common/basic_types";
 
 
 // ---------------------------------------------------------------------------
@@ -34,31 +34,31 @@ export const HabilidadesDeCombateSchema = z.object({
    * Weapon developed for this category.
    * Validated against weapon catalog at runtime.
    */
-  arma_desarrollada: z.string(),
+  arma_desarrollada:  z.string(),
 
   /** Ki subsystem investments. */
   habilidades_del_ki: HabilidadesDelKiSchema.optional(),
 
   /** Weapon tables purchased. */
-  tablas_de_armas: z.array(TablaPDSchema).optional(),
+  tablas_de_armas:    z.array(PdConOpcionesSchema).optional(),
 
   /** Style tables purchased. */
-  tablas_de_estilos: z.array(TablaPDSchema).optional(),
+  tablas_de_estilos:  z.array(PdConOpcionesSchema).optional(),
 
   /**
    * Martial arts and martial art tables purchased.
    * Each element has exactly one catalog key (arte_marcial or tabla_de_arte_marcial).
    * The two enum sets are disjoint — key identity determines type.
    */
-  artes_marciales: z.array(TablaPDSchema).optional(),
+  artes_marciales:    z.array(PdConOpcionesSchema).optional(),
 
   /**
    * Ars magnus entries (menor, mayor, armas_imposibles).
    * Each element has exactly one catalog key from the merged ars_magnus enum.
    */
-  ars_magnus: z.array(TablaPDSchema).optional(),
+  ars_magnus:         z.array(PdConOpcionesSchema).optional(),
 
   /** Supernatural combat tables purchased. */
-  tablas_de_combate_sobrenatural: z.array(TablaPDSchema).optional(),
+  tablas_de_combate_sobrenatural: z.array(PdConOpcionesSchema).optional(),
 });
 export type HabilidadesDeCombate = z.infer<typeof HabilidadesDeCombateSchema>;

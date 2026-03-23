@@ -1,26 +1,26 @@
 import { z } from "zod";
-import { nonNegativeInt, positiveFrac, positiveInt } from "../common/basic_types";
+import { NonNegativeInt, PositiveFraction, PositiveInt } from "../common/basic_types";
 import { CombateCostePDSchema } from "./combat";
 import { SecundariasCostePDSchema } from "./secondaryAbilities";
 
 
-export const BonificadoresInnatosSchema = z.record(z.string(), nonNegativeInt);
+export const BonificadoresInnatosSchema = z.record(z.string(), NonNegativeInt);
 
 export const CategoriaDefinicionSchema = z.object({
   /** Archetype tags used to compute multiclass costs. Empty array = no archetype. */
   arquetipos:        z.array(z.string()),
   /** PD cost to buy additional HP multiples. */
-  coste_multiplo_pv: positiveInt,
+  coste_multiplo_pv: PositiveInt,
   /** Bonus HP gained on every level up. */
-  pv:                nonNegativeInt,
+  pv:                NonNegativeInt,
   /** Bonus added to turno on every level up. */
-  turno:             nonNegativeInt,
+  turno:             NonNegativeInt,
   /** Max fraction of PD spendable on combat skills (0.0 – 1.0). */
-  limite_combate:    positiveFrac,
+  limite_combate:    PositiveFraction,
   /** Max fraction of PD spendable on magic skills (0.0 – 1.0). */
-  limite_magia:      positiveFrac,
+  limite_magia:      PositiveFraction,
   /** Max fraction of PD spendable on psychic skills (0.0 – 1.0). */
-  limite_psi:        positiveFrac,
+  limite_psi:        PositiveFraction,
   /** PD costs for primary combat skills. */
   combate:           CombateCostePDSchema,
   /** PD costs for secondary skills, grouped by type. */

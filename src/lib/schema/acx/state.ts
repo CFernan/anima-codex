@@ -4,12 +4,21 @@ import {
   KiCaracteristicaEnum, GradoHechizoEnum, FamaEnum,
 } from "../common/enums";
 import {
-  AtributoDerivadoSchema,
+  AtributoCalculadoSchema,
   AtributoDirectoSchema,
-  integer,
-  nonNegativeInt,
+  Integer,
+  NonNegativeInt,
+  PositiveInt,
 } from "../common/basic_types";
 
+
+// ---------------------------------------------------------------------------
+// Character experience
+// ---------------------------------------------------------------------------
+export const ExperienciaSchema = z.object({
+  actual:            NonNegativeInt,
+  __siguiente_nivel: NonNegativeInt.optional(),
+});
 
 // ---------------------------------------------------------------------------
 // Ki state
@@ -22,13 +31,15 @@ import {
 // Both cannot coexist in the same object (.strict() enforces exclusivity).
 // ---------------------------------------------------------------------------
 const puntosDeKiSchema = z.union([
-  z.object({ total: nonNegativeInt }).strict(),
-  schemaFromEnum(KiCaracteristicaEnum, nonNegativeInt).strict(),
+  z.object({
+    total: NonNegativeInt
+  }).strict(),
+  schemaFromEnum(KiCaracteristicaEnum, NonNegativeInt).strict(),
 ]);
 
 // Technique/ability maintenance cost — per ki characteristic
 const costeMantenimientoSchema = schemaFromEnum(
-  KiCaracteristicaEnum, AtributoDerivadoSchema,
+  KiCaracteristicaEnum, AtributoCalculadoSchema,
 ).partial();
 
 const estadoKiSchema = z.object({
@@ -37,33 +48,47 @@ const estadoKiSchema = z.object({
   /** Currently maintained techniques and abilities. */
   tecnicas_y_habilidades_mantenidas: z.array(z.object({
     nombre: z.string(),
-    grado:  GradoHechizoEnum,
     /** Maintenance cost modifiers (base from catalog). */
     coste:  costeMantenimientoSchema.optional(),
   })).optional(),
 });
 
 // ---------------------------------------------------------------------------
+// Weight state
+// ---------------------------------------------------------------------------
+const indiceDePesoSchema = z.object({
+  __peso_natural: z.number().optional(),
+  __peso_maximo:  z.number().optional(),
+  __peso_cargado: z.number().optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Fame state
+// ---------------------------------------------------------------------------
+const famaSchema = z.object({
+  ...schemaFromEnum(FamaEnum, NonNegativeInt).partial(),
+  __total: NonNegativeInt.optional(),
+});
+
+// ---------------------------------------------------------------------------
 // Supernatural state
 // ---------------------------------------------------------------------------
-const hechizoCostSchema = AtributoDerivadoSchema; // modifiers only — base from catalog
-
 const estadoSobrenaturalSchema = z.object({
   /** Current zeon pool. */
-  zeon:          nonNegativeInt,
+  zeon:           NonNegativeInt,
   /** Currently accumulated zeon. */
-  zeon_acumulado: nonNegativeInt.optional(),
+  zeon_acumulado: NonNegativeInt.optional(),
   /** Currently maintained spells. */
   hechizos_mantenidos: z.array(z.object({
     nombre: z.string(),
     grado:  GradoHechizoEnum,
     /** Maintenance cost modifiers (base from catalog). */
-    coste:  hechizoCostSchema,
+    coste:  AtributoCalculadoSchema.optional(),
   })).optional(),
   /** Bound creatures and their binding cost. */
   criaturas_atadas: z.array(z.object({
     nombre: z.string(),
-    coste:  AtributoDirectoSchema,
+    coste:  AtributoDirectoSchema.optional(),
   })).optional(),
 });
 
@@ -72,13 +97,13 @@ const estadoSobrenaturalSchema = z.object({
 // ---------------------------------------------------------------------------
 const estadoMentalismoSchema = z.object({
   CVs_libres: z.object({
-    gastados:              nonNegativeInt,
-    invertidos_en_innatos: nonNegativeInt.optional(),
+    gastados:              NonNegativeInt,
+    invertidos_en_innatos: NonNegativeInt.optional(),
   }),
-  turnos_concentrados: nonNegativeInt.optional(),
-  poderes_mantenidos: z.array(z.object({
+  turnos_concentrados: PositiveInt.optional(),
+  poderes_mantenidos:  z.array(z.object({
     nombre:    z.string(),
-    potencial: z.string(),
+    potencial: AtributoCalculadoSchema,
   })).optional(),
 });
 
@@ -86,36 +111,41 @@ const estadoMentalismoSchema = z.object({
 // Estado root
 // ---------------------------------------------------------------------------
 export const EstadoSchema = z.object({
+  /** Character Experience */
+  experiencia: ExperienciaSchema.optional(),
+
   /** Current hit points (may be negative). */
-  pv:        integer,
+  pv:        Integer,
   /** Current fatigue level. */
-  cansancio: nonNegativeInt,
+  cansancio: NonNegativeInt,
+
+  /** Carried weight */
+  indice_de_peso: indiceDePesoSchema.optional(),
 
   /** Global modifiers affecting all actions or physical actions. */
   modificadores_globales: z.object({
-    a_toda_accion: AtributoDerivadoSchema,
-    fisicos:       AtributoDerivadoSchema,
-  }),
+    a_toda_accion: AtributoCalculadoSchema.optional(),
+    fisicos:       AtributoCalculadoSchema.optional(),
+  }).optional(),
 
-  /** Ki state — all characters have ki points. */
-  ki: estadoKiSchema,
-
+  /** Ki state (characters who developed ki only). */
+  ki:           estadoKiSchema.optional(),
   /** Supernatural state (mystic characters only). */
   sobrenatural: estadoSobrenaturalSchema.optional(),
-
   /** Mentalism state (psychic characters only). */
-  mentalismo: estadoMentalismoSchema.optional(),
+  mentalismo:   estadoMentalismoSchema.optional(),
 
   /** Fate points. */
   puntos_de_destino: z.object({
-    totales: nonNegativeInt,
-    usados:  nonNegativeInt,
+    totales: NonNegativeInt,
+    usados:  NonNegativeInt,
   }).optional(),
 
-  /** Mental health points. */
-  salud_mental: nonNegativeInt.optional(),
-
   /** Fame/reputation by group. */
-  fama: schemaFromEnum(FamaEnum, nonNegativeInt).partial().optional(),
+  fama: famaSchema.optional(),
+
+  /** Mental health. */
+  salud_mental: NonNegativeInt.optional(),
+  trastornos:   z.array(z.string()).optional(),
 });
 export type Estado = z.infer<typeof EstadoSchema>;

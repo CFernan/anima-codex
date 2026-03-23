@@ -1,39 +1,39 @@
 import { z } from "zod";
-import { NombreOpcionesSchema } from "../common/basic_types";
+import { NombreConOpcionesSchema } from "../common/basic_types";
 import { CaracteristicasPrimariasSchema } from "./characteristic";
 import { CaracteristicasSecundariasSchema } from "./characteristic";
 import { CapacidadesFisicasSchema } from "./characteristic";
 import { ResistenciasSchema } from "./characteristic";
-import { AtributoDerivadoSchema } from "../common/basic_types";
 import { PuntosDeCreacionSchema } from "./creation_points";
-import { CategoriaInversionSchema } from "./category";
+import { InversionPdsSchema } from "./category";
 import { EquipoSchema } from "./equipment";
 import { KiSchema } from "./ki";
 import { MisticosSchema } from "./mystic";
 import { EstadoSchema } from "./state";
-import { DescripcionSchema, CaracteristicasDelSerSchema, AjustesDeNivelSchema } from "./character_miscellany";
+import { DescripcionSchema, CaracteristicasDelSerSchema, AjustesDeNivelSchema, CorduraSchema, NotaSchema } from "./character_miscellany";
 import { PsiquicosSchema } from "./psychic";
 import { ElanSchema } from "./elan";
 import { CatalogoLocalSchema } from "./local_catalog";
+import { HabilidadesSecundariasSchema } from "./secondary_abilities";
 
 
 // ---------------------------------------------------------------------------
 // Metadata
 // ---------------------------------------------------------------------------
 const metadataSchema = z.object({
-  version_schema:  z.string(),
-  marca_de_tiempo: z.iso.datetime(),
-  jugador:         z.string(),
+  __version_schema:  z.string(),
+  __marca_de_tiempo: z.iso.datetime(),
+  jugador:           z.string(),
 });
 
 // ---------------------------------------------------------------------------
 // Input — the character data proper
 // ---------------------------------------------------------------------------
-const entradaSchema = z.object({
+const basePersonajeSchema = z.object({
   nombre: z.string(),
 
   /** Race. opciones varies per race. */
-  raza: NombreOpcionesSchema,
+  raza: NombreConOpcionesSchema,
 
   /** Optional descriptive fields. Predefined + user-defined extras. */
   descripcion: DescripcionSchema.optional(),
@@ -44,19 +44,23 @@ const entradaSchema = z.object({
   caracteristicas_secundarias: CaracteristicasSecundariasSchema,
   capacidades_fisicas:         CapacidadesFisicasSchema,
   resistencias:                ResistenciasSchema,
-  turno_base:                  AtributoDerivadoSchema,
   puntos_de_creacion:          PuntosDeCreacionSchema,
 
-  /** Category investments. At least one required. */
-  categorias: z.array(CategoriaInversionSchema).min(1),
+  /** PD investments. */
+  inversion_pds:               InversionPdsSchema.optional(),
 
   equipo:    EquipoSchema.optional(),
   ki:        KiSchema.optional(),
   misticos:  MisticosSchema.optional(),
   psiquicos: PsiquicosSchema.optional(),
-  elan:      z.array(ElanSchema).optional(),
+
+  habilidades_secundarias: HabilidadesSecundariasSchema.optional(),
+
+  elan: z.array(ElanSchema).optional(),
 
   ajustes_de_nivel: AjustesDeNivelSchema.optional(),
+
+  cordura: CorduraSchema.optional(),
 
   /** Current session state. */
   estado: EstadoSchema,
@@ -65,20 +69,20 @@ const entradaSchema = z.object({
   idiomas: z.array(z.string()).optional(),
 
   /**
-   * Free-form notes grouped by section name.
-   * Each element has exactly one key (section name → content).
-   * Exactly-one-key per element is not enforceable in Zod.
+   * Free-form notes grouped in an array to keep order of sections.
+   * Each section may have several notes, for that there will be
+   * duplicates of sections in the general array
    */
-  notas: z.array(z.record(z.string(), z.string())).optional(),
+  notas: z.array(NotaSchema).optional(),
 });
 
 // ---------------------------------------------------------------------------
 // Root character schema
 // ---------------------------------------------------------------------------
-export const CharacterSchema = z.object({
+export const AcxSchema = z.object({
   metadata:       metadataSchema,
-  entrada:        entradaSchema,
+  personaje:      basePersonajeSchema,
   catalogo_local: CatalogoLocalSchema,
 });
-export type Character = z.infer<typeof CharacterSchema>;
-export type CharacterInput = z.input<typeof CharacterSchema>;
+export type Character = z.infer<typeof AcxSchema>;
+export type CharacterInput = z.input<typeof AcxSchema>;

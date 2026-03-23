@@ -16,7 +16,7 @@ export const KiCaracteristicaEnum = z.enum([
 export type KiCaracteristica = z.infer<typeof KiCaracteristicaEnum>;
 
 // ---------------------------------------------------------------------------
-// Derived stats enums
+// Other stats enums
 // ---------------------------------------------------------------------------
 export const ResistenciaEnum = z.enum([
   "presencia", "rf", "rv", "re", "rm", "rp",
@@ -24,13 +24,10 @@ export const ResistenciaEnum = z.enum([
 export type Resistencia = z.infer<typeof ResistenciaEnum>;
 
 export const CapacidadFisicaEnum = z.enum([
-  "tipo_de_movimiento", "indice_de_peso", "cansancio", "regeneracion",
+  "turno_base", "pvs", "tipo_de_movimiento", "indice_de_peso",
+  "cansancio", "regeneracion", "acciones_maximas",
 ]);
 export type CapacidadFisica = z.infer<typeof CapacidadFisicaEnum>;
-
-// ---------------------------------------------------------------------------
-// Secondary skill groups (official — custom groups use z.string())
-// ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
 // Primary abilities
@@ -61,20 +58,10 @@ export const TipoTAEnum = z.enum([
 export type TipoTA = z.infer<typeof TipoTAEnum>;
 
 export const TamañoArmaEnum = z.enum(["normal", "enorme", "gigante"]);
-export const ManosEnum = z.enum(["una_mano", "dos_manos"]);
-
-export const ModificadorArmaEnum = z.enum([
-  "habilidad_de_ataque", "habilidad_de_parada",
-  "habilidad_de_esquiva", "daño", "turno",
-]);
 
 // ---------------------------------------------------------------------------
 // Ki
 // ---------------------------------------------------------------------------
-export const KiSecundariasEnum = z.enum([
-  "deteccion_del_ki", "ocultacion_del_ki",
-]);
-
 export const MantenimientoTecnicaEnum = z.enum([
   "mantenido", "sostenimiento_menor", "sostenimiento_mayor",
 ]);
@@ -95,8 +82,6 @@ export const GradoHechizoEnum = z.enum([
 export const FamaEnum = z.enum([
   "audacia", "honorabilidad", "habilidad", "cobardia", "infamia",
 ]);
-
-export const AjusteGnosisEnum = z.enum(["pd", "pc"]);
 
 export const CambioCategoriaEnum = z.enum(["previa", "posterior"]);
 

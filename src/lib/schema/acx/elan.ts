@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { nonNegativeInt } from "../common/basic_types";
+import { PositiveInt } from "../common/basic_types";
 
 
 // ---------------------------------------------------------------------------
@@ -8,7 +8,7 @@ import { nonNegativeInt } from "../common/basic_types";
 export const ElanSchema = z.object({
   /** Deity name. Validated against elan catalog at runtime. */
   nombre: z.string(),
-  nivel:  nonNegativeInt,
+  nivel:  PositiveInt,
   /** Boons granted at current elan level. */
   dones:  z.array(z.string()),
 });

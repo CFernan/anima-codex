@@ -1,5 +1,5 @@
 import { z, } from "zod";
-import { TipoAtributoSchema, positiveInt } from "../common/basic_types";
+import { TipoAtributoSchema, PositiveInt } from "../common/basic_types";
 import { CaracteristicaEnum } from "../common/enums";
 
 
@@ -8,8 +8,8 @@ import { CaracteristicaEnum } from "../common/enums";
 // ---------------------------------------------------------------------------
 //** Schema to set the general DP cost of a group with single particular secondary skills costs*/
 export const SecundariaGrupoCostePDsSchema = z.object({
-  general: positiveInt,
-  particular: z.record(z.string(), positiveInt).optional()
+  general: PositiveInt,
+  particular: z.record(z.string(), PositiveInt).optional()
 });
 
 //* Final schema, union of both */

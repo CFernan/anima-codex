@@ -1,5 +1,5 @@
 import { SecundariaDefinicionSchema, SecundariaGrupoCostePDsSchema, type SecundariasCatalogInput } from "$lib/schema/catalog/secondaryAbilities";
-import { positiveInt } from "$lib/schema/common/basic_types";
+import { PositiveInt } from "$lib/schema/common/basic_types";
 import { schemaFromEnum } from "$lib/schema/common/utils";
 import z from "zod";
 
@@ -121,19 +121,19 @@ export const SecundariasInversionBaseSchema = z.object({
 // helper schemas for category validation
 export const SecundariasCostePDBaseSchema = z.object({
   atleticas:     SecundariaGrupoCostePDsSchema.extend({
-                    particular: schemaFromEnum(SecundariasAtleticasBaseEnum, positiveInt).partial().strict().optional()}),
+                    particular: schemaFromEnum(SecundariasAtleticasBaseEnum, PositiveInt).partial().strict().optional()}),
   sociales:      SecundariaGrupoCostePDsSchema.extend({
-                    particular: schemaFromEnum(SecundariasSocialesBaseEnum, positiveInt).partial().strict().optional()}),
+                    particular: schemaFromEnum(SecundariasSocialesBaseEnum, PositiveInt).partial().strict().optional()}),
   perceptivas:   SecundariaGrupoCostePDsSchema.extend({
-                    particular: schemaFromEnum(SecundariasPerceptivasBaseEnum, positiveInt).partial().strict().optional()}),
+                    particular: schemaFromEnum(SecundariasPerceptivasBaseEnum, PositiveInt).partial().strict().optional()}),
   intelectuales: SecundariaGrupoCostePDsSchema.extend({
-                    particular: schemaFromEnum(SecundariasIntelectualesBaseEnum, positiveInt).partial().strict().optional()}),
+                    particular: schemaFromEnum(SecundariasIntelectualesBaseEnum, PositiveInt).partial().strict().optional()}),
   vigor:         SecundariaGrupoCostePDsSchema.extend({
-                    particular: schemaFromEnum(SecundariasVigorBaseEnum, positiveInt).partial().strict().optional()}),
+                    particular: schemaFromEnum(SecundariasVigorBaseEnum, PositiveInt).partial().strict().optional()}),
   subterfugio:   SecundariaGrupoCostePDsSchema.extend({
-                    particular: schemaFromEnum(SecundariasSubterfugioBaseEnum, positiveInt).partial().strict().optional()}),
+                    particular: schemaFromEnum(SecundariasSubterfugioBaseEnum, PositiveInt).partial().strict().optional()}),
   creativas:     SecundariaGrupoCostePDsSchema.extend({
-                    particular: schemaFromEnum(SecundariasCreativasBaseEnum, positiveInt).partial().strict().optional()}),
+                    particular: schemaFromEnum(SecundariasCreativasBaseEnum, PositiveInt).partial().strict().optional()}),
   // ki group is ignored as there is no cost
 });
 

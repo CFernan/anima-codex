@@ -1,10 +1,10 @@
 {
   "metadata": {
-    "version_schema": "1.0",
-    "marca_de_tiempo": "2026-03-14T10:00:00Z",
+    "__version_schema": "1.0",
+    "__marca_de_tiempo": "2026-03-14T10:00:00Z",
     "jugador": "Juan"
   },
-  "entrada": {
+  "personaje": {
     "nombre": "Kael",
     "raza": {
       "nombre": "Humano"
@@ -57,60 +57,39 @@
     "caracteristicas_secundarias": {
       "apariencia": {
         "base": 8
-      },
-      "tamaño": {}
+      }
     },
-    "capacidades_fisicas": {
-      "tipo_de_movimiento": {},
-      "indice_de_peso": {},
-      "cansancio": {},
-      "regeneracion": {}
-    },
-    "resistencias": {
-      "presencia": {},
-      "rf": {},
-      "rv": {},
-      "re": {},
-      "rm": {},
-      "rp": {}
-    },
-    "turno_base": {},
+    "capacidades_fisicas": {},
+    "resistencias": {},
     "puntos_de_creacion": {
       "ventajas": []
     },
-    "categorias": [
-      {
-        "categoria": "Guerrero",
-        "nivel": 1,
-        "habilidades_de_combate": {
-          "habilidad_de_ataque": {
-            "pd": 50
-          },
-          "habilidad_de_parada": {
-            "pd": 30
-          },
-          "habilidad_de_esquiva": {
-            "pd": 0
-          },
-          "llevar_armadura": {
-            "pd": 20
-          },
-          "arma_desarrollada": "espada larga"
+    "inversion_pds": {
+      "categorias": [
+        {
+          "categoria": "Guerrero",
+          "nivel": 1,
+          "habilidades_de_combate": {
+            "habilidad_de_ataque": {
+              "pd": 50
+            },
+            "habilidad_de_parada": {
+              "pd": 30
+            },
+            "habilidad_de_esquiva": {
+              "pd": 0
+            },
+            "llevar_armadura": {
+              "pd": 20
+            },
+            "arma_desarrollada": "espada larga"
+          }
         }
-      }
-    ],
+      ]
+    },
     "estado": {
       "pv": 50,
-      "cansancio": 0,
-      "modificadores_globales": {
-        "a_toda_accion": {},
-        "fisicos": {}
-      },
-      "ki": {
-        "puntos_de_ki": {
-          "total": 10
-        }
-      }
+      "cansancio": 0
     }
   },
   "catalogo_local": {}

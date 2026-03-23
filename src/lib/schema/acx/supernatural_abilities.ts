@@ -3,7 +3,7 @@ import { schemaFromEnum } from "../common/utils";
 import {
   HabilidadSobrenaturalBasicaEnum, ConvocatoriaEnum,
 } from "../common/enums";
-import { AtributoPDSchema, TablaPDSchema } from "../common/basic_types";
+import { AtributoPDSchema, PdConOpcionesSchema } from "../common/basic_types";
 
 
 // ---------------------------------------------------------------------------
@@ -16,10 +16,10 @@ export const HabilidadesSobrenaturalesSchema = z.object({
   /** Nivel de magia — optional even when section is present. */
   nivel_de_magia: AtributoPDSchema.optional(),
 
+  /** Mystic tables purchased. */
+  tablas_misticas: z.array(PdConOpcionesSchema).optional(),
+
   /** Summoning subsystem — all four required if convocatoria is present. */
   convocatoria: schemaFromEnum(ConvocatoriaEnum, AtributoPDSchema).optional(),
-
-  /** Mystic tables purchased. */
-  tablas_misticas: z.array(TablaPDSchema).optional(),
 });
 export type HabilidadesSobrenaturales = z.infer<typeof HabilidadesSobrenaturalesSchema>;

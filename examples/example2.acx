@@ -1,10 +1,10 @@
 {
   "metadata": {
-    "version_schema": "1.0",
-    "marca_de_tiempo": "2026-03-14T10:00:00Z",
+    "__version_schema": "1.0",
+    "__marca_de_tiempo": "2026-03-14T10:00:00Z",
     "jugador": "Maria"
   },
-  "entrada": {
+  "personaje": {
     "nombre": "Sylara",
     "raza": {
       "nombre": "Sylvain"
@@ -48,6 +48,7 @@
       "tamaño": {}
     },
     "capacidades_fisicas": {
+      "turno_base": {},
       "tipo_de_movimiento": {},
       "indice_de_peso": {},
       "cansancio": {},
@@ -61,7 +62,6 @@
       "rm": {},
       "rp": {}
     },
-    "turno_base": {},
     "puntos_de_creacion": {
       "ventajas": [
         {
@@ -69,64 +69,66 @@
         }
       ]
     },
-    "categorias": [
-      {
-        "categoria": "Hechicero",
-        "nivel": 1,
-        "habilidades_sobrenaturales": {
-          "zeon": {
-            "pd": 80
-          },
-          "ACT": {
-            "pd": 100
-          },
-          "multiplo_de_regeneracion": {
-            "pd": 0
-          },
-          "proyeccion_magica": {
-            "pd": 180
-          },
-          "nivel_de_magia": {
-            "pd": 0
-          }
-        },
-        "habilidades_secundarias": {
-          "intelectuales": {
-            "historia": {
-              "pd": 20
+    "inversion_pds": {
+      "categorias": [
+        {
+          "categoria": "Hechicero",
+          "nivel": 1,
+          "habilidades_sobrenaturales": {
+            "zeon": {
+              "pd": 80
             },
-            "ocultismo": {
-              "pd": 40,
-              "modificadores_base": [
-                {
-                  "valor": 10,
-                  "fuente": "bono natural"
-                }
-              ]
+            "ACT": {
+              "pd": 100
             },
-            "v_magica": {
-              "pd": 20,
-              "modificadores_base": [
-                {
-                  "valor": 15,
-                  "fuente": "habilidad natural"
-                }
-              ]
+            "multiplo_de_regeneracion": {
+              "pd": 0
+            },
+            "proyeccion_magica": {
+              "pd": 180
+            },
+            "nivel_de_magia": {
+              "pd": 0
             }
           },
-          "perceptivas": {
-            "advertir": {
-              "pd": 30
-            }
-          },
-          "sociales": {
-            "persuasion": {
-              "pd": 20
+          "habilidades_secundarias": {
+            "intelectuales": {
+              "historia": {
+                "pd": 20
+              },
+              "ocultismo": {
+                "pd": 40,
+                "modificadores_base": [
+                  {
+                    "valor": 10,
+                    "fuente": "bono natural"
+                  }
+                ]
+              },
+              "v_magica": {
+                "pd": 20,
+                "modificadores_base": [
+                  {
+                    "valor": 15,
+                    "fuente": "habilidad natural"
+                  }
+                ]
+              }
+            },
+            "perceptivas": {
+              "advertir": {
+                "pd": 30
+              }
+            },
+            "sociales": {
+              "persuasion": {
+                "pd": 20
+              }
             }
           }
         }
-      }
-    ],
+      ]
+    },
     "estado": {
       "pv": 40,
       "cansancio": 0,

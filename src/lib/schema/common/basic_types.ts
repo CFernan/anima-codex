@@ -5,38 +5,58 @@ import { uniqueValues } from "./utils";
 // ---------------------------------------------------------------------------
 // Shorthand validators (exported for reuse)
 // ---------------------------------------------------------------------------
-export const integer        = z.number().int();
-export const nonNegativeInt = z.number().int().nonnegative();
-export const positiveInt    = z.number().int().positive();
-export const pd             = nonNegativeInt; // alias — appears as standalone field name in schemas
-export const positiveFrac   = z.number().min(0).max(1)
+export const Integer          = z.number().int();
+export const NonNegativeInt   = z.number().int().nonnegative();
+export const PositiveInt      = z.number().int().positive();
+export const PD               = NonNegativeInt; // alias — appears as standalone field name in schemas
+export const PositiveFraction = z.number().min(0).max(1)
+export const OptionalBool     = z.boolean().optional()  // do not store value if it is false
+                                 .transform(val => (val === false ? undefined : val))
+export const StringOrNumber   = z.union([z.string(), z.number()])
 
 // ---------------------------------------------------------------------------
 // Attribute modifier
 // Field names in Spanish — appear verbatim in .acx save files.
 // ---------------------------------------------------------------------------
-export const ModificadorAttributoSchema = z.object({
+export const ModificadorAtributoSchema = z.object({
   /** Origin of the modifier (e.g. "Hechizo", "Equipo"). */
-  fuente:      z.string(),
+  fuente:       z.string(),
   /** Numeric modifier value. May be negative. */
-  valor:       integer,
+  valor:        Integer,
   /** Optional free-text description. */
-  descripcion: z.string().optional(),
-}).strict();
-export type ModificadorAtributo = z.infer<typeof ModificadorAttributoSchema>;
+  descripcion:  z.string().optional(),
+  /** Used as write-only by engine */
+  __automatico: OptionalBool,
+});
+export type ModificadorAtributo = z.infer<typeof ModificadorAtributoSchema>;
 
-const modifierArrays = z.object({
-  modificadores_base:       z.array(ModificadorAttributoSchema)
+//** Lambda to check uniqueness of automatico + fuente + descripccion */
+const serializeModifierUniquenessKey = (m: ModificadorAtributo) =>
+  `${m.__automatico ? "auto" : ""}|${m.fuente}|${m.descripcion ?? ""}`;
+
+const modificadoresSchema = z.object({
+  modificadores_base:       z.array(ModificadorAtributoSchema)
     .refine(
-        uniqueValues((m: ModificadorAtributo) => `${m.fuente}|${m.descripcion ?? ""}`),
+        uniqueValues(serializeModifierUniquenessKey),
         { message: "fuente + descripcion must be unique within modificadores_base" }
     ).optional(),
-  modificadores_temporales: z.array(ModificadorAttributoSchema)
+  modificadores_temporales: z.array(ModificadorAtributoSchema)
     .refine(
-        uniqueValues((m: ModificadorAtributo) => `${m.fuente}|${m.descripcion ?? ""}`),
+        uniqueValues(serializeModifierUniquenessKey),
         { message: "fuente + descripcion must be unique within modificadores_temporales" }
     ).optional(),
 });
+
+// ---------------------------------------------------------------------------
+// Attribute result
+// This contains the result computed by the engine
+// ---------------------------------------------------------------------------
+export const ResultadoAtributoSchema = z.object({
+  __base_calculada: Integer.optional(), // if it is equal than final_base no need to store
+  __final_base:     Integer.optional(),
+  __final_temporal: Integer.optional(), // if it is equal than final_base no need to store
+})
+export type ResultadoAtributo = z.infer<typeof ResultadoAtributoSchema>;
 
 // ---------------------------------------------------------------------------
 // Attribute types
@@ -48,29 +68,32 @@ const modifierArrays = z.object({
 
 /** Directly assigned base value. Used for: primary characteristics, apariencia. */
 export const AtributoDirectoSchema = z.object({
-  base: positiveInt,
-  ...modifierArrays.shape,
+  base: PositiveInt,
+  ...modificadoresSchema.shape,
+  ...ResultadoAtributoSchema.shape,
 });
 export type AtributoDirecto = z.infer<typeof AtributoDirectoSchema>;
 
 /** PD-invested attribute. Used for: combat skills, secondary skills, HP, etc. */
 export const AtributoPDSchema = z.object({
-  pd: pd,
-  ...modifierArrays.shape,
+  pd: PD,
+  ...modificadoresSchema.shape,
+  ...ResultadoAtributoSchema.shape,
 });
 export type AtributoPD = z.infer<typeof AtributoPDSchema>;
 
-/** Derived attribute — only modifiers, base computed by engine. */
-export const AtributoDerivadoSchema = z.object({
-  ...modifierArrays.shape,
+/** Computed attribute — only modifiers, base computed by engine. */
+export const AtributoCalculadoSchema = z.object({
+  ...modificadoresSchema.shape,
+  ...ResultadoAtributoSchema.shape,
 });
-export type AtributoDerivado = z.infer<typeof AtributoDerivadoSchema>;
+export type AtributoDerivado = z.infer<typeof AtributoCalculadoSchema>;
 
 /** Flexible attribute — an attribute that can be any type of the above. */
 export const AtributoFlexibleSchema = z.union([
   AtributoDirectoSchema.strict(),
   AtributoPDSchema.strict(),
-  AtributoDerivadoSchema.strict(),
+  AtributoCalculadoSchema.strict(),
 ]);
 export type AtributoFlexible = z.infer<typeof AtributoFlexibleSchema>;
 
@@ -78,7 +101,7 @@ export type AtributoFlexible = z.infer<typeof AtributoFlexibleSchema>;
 export type AtributoSchema =
   | typeof AtributoDirectoSchema
   | typeof AtributoPDSchema
-  | typeof AtributoDerivadoSchema
+  | typeof AtributoCalculadoSchema
   | typeof AtributoFlexibleSchema;
 
 export const TipoAtributoSchema = z.enum(["directo", "pd", "derivado", "flexible"]);
@@ -87,25 +110,22 @@ export type TipoAtributo = z.infer<typeof TipoAtributoSchema>;
 export const AttributeTypeSchemaMap = {
   directo:  AtributoDirectoSchema,
   pd:       AtributoPDSchema,
-  derivado: AtributoDerivadoSchema,
+  derivado: AtributoCalculadoSchema,
   flexible: AtributoFlexibleSchema
 } satisfies Record<TipoAtributo, AtributoSchema>;
 
 // ---------------------------------------------------------------------------
 
 /** NombreOpcionesSchema — Used as a named generic unknown structure */
-export const NombreOpcionesSchema = z.object({
+export const NombreConOpcionesSchema = z.object({
   nombre:   z.string(),
   opciones: z.unknown().optional(),
 });
-export type NombreOpciones = z.infer<typeof NombreOpcionesSchema>;
+export type NombreOpciones = z.infer<typeof NombreConOpcionesSchema>;
 
 /** PdOpcionesSchema — Used as a PD generic unknown structure */
-export const PdOpcionesSchema = z.object({
-  pd:       pd,
-  opciones: z.unknown().optional(),
+export const PdConOpcionesSchema = z.object({
+  pd: PD,
+  ...NombreConOpcionesSchema.shape,
 });
-export type PdOpciones = z.infer<typeof PdOpcionesSchema>;
-
-/** TablaPDSchema — Used as a PD generic table unknown structure */
-export const TablaPDSchema = z.record(z.string(), PdOpcionesSchema);
+export type PdOpciones = z.infer<typeof PdConOpcionesSchema>;

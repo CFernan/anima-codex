@@ -1,36 +1,34 @@
 import { z } from "zod";
-import { integer, NombreOpcionesSchema, nonNegativeInt, positiveInt } from "../common/basic_types";
+import { Integer, NombreConOpcionesSchema, NonNegativeInt, PositiveInt } from "../common/basic_types";
 
 
 // ---------------------------------------------------------------------------
 // Via de magia entry
 // ---------------------------------------------------------------------------
 const viaDeMagiaSchema = z.object({
+  nombre:    z.string(),
   /** Level of magic invested in this via. */
-  invertido: nonNegativeInt,
+  invertido: NonNegativeInt,
   /** Sub-via selected, if any. */
-  subvia: z.string().optional(),
+  subvia:    z.string().optional(),
   /** Free-access spells for this via. */
   conjuros_libre_acceso: z.array(z.object({
     nombre:             z.string(),
-    nivel_libre_acceso: positiveInt,
+    nivel_libre_acceso: PositiveInt,
   })).optional(),
 });
 
 // ---------------------------------------------------------------------------
 // Niveles de magia
-//
-// Mixed object: fixed key `conjuros_seleccionados` + dynamic via keys.
-// Modeled with z.object(...).catchall(viaSchema) — catchall applies to all
-// keys not explicitly defined, i.e. the dynamic via keys.
 // ---------------------------------------------------------------------------
 const nivelesDeMagiaSchema = z.object({
+  vias: z.array(viaDeMagiaSchema).optional(),
   /**
    * Spells selected freely across vias (independent of via investment).
    * Array of spell enum values.
    */
   conjuros_seleccionados: z.array(z.string()).optional(),
-}).catchall(viaDeMagiaSchema);
+});
 
 // ---------------------------------------------------------------------------
 // Metamagia
@@ -38,8 +36,8 @@ const nivelesDeMagiaSchema = z.object({
 // (multiple nodes may share the same name at different positions).
 // ---------------------------------------------------------------------------
 const metamagiaSchema = z.object({
-  ...NombreOpcionesSchema.shape,
-  id: integer,
+  ...NombreConOpcionesSchema.shape,
+  id: PositiveInt,
 });
 
 // ---------------------------------------------------------------------------
@@ -51,7 +49,7 @@ export const MisticosSchema = z.object({
   niveles_de_magia: nivelesDeMagiaSchema.optional(),
 
   /** Magic theorem selected. */
-  teorema_de_magia: NombreOpcionesSchema.optional(),
+  teorema_de_magia: NombreConOpcionesSchema.optional(),
 
   /** Metamagic nodes acquired. nombre+id = unique node identifier. */
   metamagia: z.array(metamagiaSchema).optional(),

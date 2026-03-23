@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { schemaFromEnum } from "../common/utils";
 import { HabilidadPsiquicaBasicaEnum } from "../common/enums";
-import { AtributoPDSchema, TablaPDSchema } from "../common/basic_types";
+import { AtributoPDSchema, PdConOpcionesSchema } from "../common/basic_types";
 
 
 // ---------------------------------------------------------------------------
@@ -12,9 +12,9 @@ export const HabilidadesPsiquicasSchema = z.object({
   ...schemaFromEnum(HabilidadPsiquicaBasicaEnum, AtributoPDSchema).shape,
 
   /** Psychic tables purchased. */
-  tablas_psiquicas: z.array(TablaPDSchema).optional(),
+  tablas_psiquicas:  z.array(PdConOpcionesSchema).optional(),
 
   /** Mental patterns purchased. */
-  patrones_mentales: z.array(TablaPDSchema).optional(),
+  patrones_mentales: z.array(PdConOpcionesSchema).optional(),
 });
 export type HabilidadesPsiquicas = z.infer<typeof HabilidadesPsiquicasSchema>;

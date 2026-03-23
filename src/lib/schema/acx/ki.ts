@@ -1,20 +1,20 @@
 import { z } from "zod";
 import { schemaFromEnum } from "../common/utils";
 import { KiCaracteristicaEnum, MantenimientoTecnicaEnum, NivelTecnicaSchema } from "../common/enums";
-import { integer, NombreOpcionesSchema, nonNegativeInt } from "../common/basic_types";
+import { Integer, NombreConOpcionesSchema, NonNegativeInt, OptionalBool, PositiveInt } from "../common/basic_types";
 
 
 // ---------------------------------------------------------------------------
 // Technique effect cost — per ki characteristic
 // ---------------------------------------------------------------------------
-const efectoCosteCaracteristicaSchema = z.object({
-  activacion:        nonNegativeInt,
-  mantenimiento:     nonNegativeInt.optional(),
-  alteracion_por_cm: integer.optional(),
+const costeEfectoTecnicaSchema = z.object({
+  activacion:        PositiveInt,
+  mantenimiento:     PositiveInt.optional(),
+  alteracion_por_cm: Integer.optional(),
 });
 
 const efectoCosteSchema = schemaFromEnum(
-  KiCaracteristicaEnum, efectoCosteCaracteristicaSchema,
+  KiCaracteristicaEnum, costeEfectoTecnicaSchema,
 ).partial();
 
 // ---------------------------------------------------------------------------
@@ -23,9 +23,9 @@ const efectoCosteSchema = schemaFromEnum(
 const efectoSchema = z.object({
   /** Effect name. Validated against ki effects catalog at runtime. */
   nombre: z.string(),
-  mantenimiento: MantenimientoTecnicaEnum.optional(),
   /** Effect options. Validated against catalog at runtime. */
   opciones: z.array(z.string()),
+  mantenimiento: MantenimientoTecnicaEnum.optional(),
   /** Ki cost per characteristic. At least one characteristic must be present. */
   coste: efectoCosteSchema,
 });
@@ -39,9 +39,9 @@ const tecnicaSchema = z.object({
   nombre:      z.string(),
   descripcion: z.string().optional(),
   nivel:       NivelTecnicaSchema.optional(),
-  combinable:  z.boolean().optional(),
-  efectos:     z.array(efectoSchema).optional(),
-  desventajas: z.array(NombreOpcionesSchema).optional(),
+  combinable:  OptionalBool,
+  efectos:     z.array(efectoSchema),
+  desventajas: z.array(NombreConOpcionesSchema).optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -55,16 +55,16 @@ const arbolTecnicasSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Dragon seal invocation
+// Ki invocation
 // ---------------------------------------------------------------------------
 const invocacionPorKiSchema = z.object({
-  /** Array of seal names (enum values, unique). */
+  /** Array of seal names. */
   sellos_de_invocacion: z.array(z.string()),
   /** Pacts with creatures using ki seals. */
   pactos: z.array(z.object({
     criatura: z.string(),
     /** Map of seal type → quantity used. */
-    sellos: z.record(z.string(), nonNegativeInt),
+    sellos:   z.record(z.string(), NonNegativeInt),
   })),
 });
 
@@ -73,9 +73,9 @@ const invocacionPorKiSchema = z.object({
 // ---------------------------------------------------------------------------
 export const KiSchema = z.object({
   /** Free ki abilities learned. */
-  habilidades_del_ki:      z.array(NombreOpcionesSchema).optional(),
+  habilidades_del_ki:      z.array(NombreConOpcionesSchema).optional(),
   /** Nemesis abilities learned. */
-  habilidades_del_nemesis: z.array(NombreOpcionesSchema).optional(),
+  habilidades_del_nemesis: z.array(NombreConOpcionesSchema).optional(),
   /** Technique domain trees. */
   tecnicas_del_dominio:    z.array(arbolTecnicasSchema).optional(),
   /** Ki limits unlocked. */

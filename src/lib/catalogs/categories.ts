@@ -4,7 +4,7 @@ import { ConvocatoriaEnum, HabilidadCombateBasicaEnum, HabilidadPsiquicaBasicaEn
 import { CombateCostePDSchema } from "$lib/schema/catalog/combat";
 import { SecundariasBaseTodasEnum, SecundariasCostePDBaseSchema } from "./secondaryAbilities";
 import { schemaFromEnum, uniqueValues } from "$lib/schema/common/utils";
-import { positiveInt } from "$lib/schema/common/basic_types";
+import { PositiveInt } from "$lib/schema/common/basic_types";
 
 
 // ---------------------------------------------------------------------------
@@ -53,8 +53,8 @@ const categoriaInversionBaseSchema = CategoriaDefinicionSchema.extend({
   arquetipos:            z.array(ArquetipoEnum).refine(uniqueValues(), { message: "Arquetipo duplicado" }),
   secundarias:           SecundariasCostePDBaseSchema,
   bonificadores_innatos: z.object({
-    primarias:           schemaFromEnum(PrimariasTodasEnum, positiveInt).partial().strict().optional(),
-    secundarias:         schemaFromEnum(SecundariasBaseTodasEnum, positiveInt).partial().strict().optional(),
+    primarias:           schemaFromEnum(PrimariasTodasEnum, PositiveInt).partial().strict().optional(),
+    secundarias:         schemaFromEnum(SecundariasBaseTodasEnum, PositiveInt).partial().strict().optional(),
   }),
 })
 

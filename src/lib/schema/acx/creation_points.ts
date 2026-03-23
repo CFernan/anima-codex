@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { NombreOpcionesSchema } from "../common/basic_types";
+import { OptionalBool, NombreConOpcionesSchema } from "../common/basic_types";
 
 
 // ---------------------------------------------------------------------------
@@ -7,14 +7,14 @@ import { NombreOpcionesSchema } from "../common/basic_types";
 // ---------------------------------------------------------------------------
 export const PuntosDeCreacionSchema = z.object({
   /** Advantages chosen during character creation. */
-  ventajas: z.array(NombreOpcionesSchema),
+  ventajas:    z.array(NombreConOpcionesSchema),
   /** Disadvantages chosen during character creation. */
-  desventajas: z.array(NombreOpcionesSchema).optional(),
+  desventajas: z.array(NombreConOpcionesSchema).optional(),
   /** Liberalized creation points — disadvantages bought off. */
   pcs_liberalizados: z.array(z.object({
-      ...NombreOpcionesSchema.shape,
+      ...NombreConOpcionesSchema.shape,
       /** Whether this entry removes an existing disadvantage. */
-      eliminar_desventaja: z.boolean().optional(),
+      eliminar_desventaja: OptionalBool,
     }),
   ).optional(),
 });

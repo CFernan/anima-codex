@@ -1,8 +1,8 @@
 import { describe, it } from "vitest";
 import { readdirSync, readFileSync } from "fs";
 import { resolve } from "path";
-import { CharacterSchema } from "$lib/schema/acx/character";
-import { assertValid } from "../../helpers/test-helpers";
+import { AcxSchema } from "$lib/schema/acx/acx";
+import { assertValid, makeStrict } from "../../helpers/test-helpers";
 
 const EXAMPLES_DIR = resolve(__dirname, "../../../../examples");
 
@@ -13,6 +13,6 @@ const acxFiles = readdirSync(EXAMPLES_DIR)
 describe("examples/ — all .acx files pass CharacterSchema", () => {
   it.each(acxFiles)("$filename", ({ path }) => {
     const raw = JSON.parse(readFileSync(path, "utf-8"));
-    assertValid(CharacterSchema.safeParse(raw));
+    assertValid(makeStrict(AcxSchema).safeParse(raw));
   });
 });

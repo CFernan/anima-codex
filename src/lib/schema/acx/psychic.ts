@@ -1,27 +1,27 @@
 import { z } from "zod";
-import { nonNegativeInt, AtributoDerivadoSchema } from "../common/basic_types";
+import { NonNegativeInt, AtributoCalculadoSchema } from "../common/basic_types";
 
 
 // ---------------------------------------------------------------------------
 // Psiquicos section
 // ---------------------------------------------------------------------------
-export const CVInversionSchema = z.object({
-  cvs_invertidos: nonNegativeInt,
-  ...AtributoDerivadoSchema.shape,
+export const atributoCVSchema = z.object({
+  ...AtributoCalculadoSchema.shape,
+  cvs_invertidos: NonNegativeInt,
 });
 
 export const PsiquicosSchema = z.object({
   potencial_psiquico: z.object({
-    ...CVInversionSchema.shape,
-    cristales_psi:  nonNegativeInt,
+    ...atributoCVSchema.shape,
+    cristales_psi:  NonNegativeInt,
   }),
-  innatos: CVInversionSchema,
+  innatos:     atributoCVSchema,
   disciplinas: z.array(z.object({
     /** Discipline name. Validated against psychic catalog at runtime. */
     disciplina: z.string(),
-    poderes_dominados: z.array(z.object({
+    poderes:    z.array(z.object({
       nombre:          z.string(),
-      fortalecimiento: CVInversionSchema,
+      fortalecimiento: atributoCVSchema.optional(),
     })),
   })),
 });

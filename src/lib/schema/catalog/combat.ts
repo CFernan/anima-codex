@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { CaracteristicaEnum, HabilidadCombateBasicaEnum } from "../common/enums";
 import { schemaFromEnum } from "../common/utils";
-import { positiveInt } from "../common/basic_types";
+import { PositiveInt } from "../common/basic_types";
 
 
 // DP cost schema
-export const CombateCostePDSchema = schemaFromEnum(HabilidadCombateBasicaEnum, positiveInt);
+export const CombateCostePDSchema = schemaFromEnum(HabilidadCombateBasicaEnum, PositiveInt);
 
 // ---------------------------------------------------------------------------
 // Combat skill definition — catalog data
