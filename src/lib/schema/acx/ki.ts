@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { schemaFromEnum } from "../common/utils";
 import { KiCaracteristicaEnum, MantenimientoTecnicaEnum, NivelTecnicaSchema } from "../common/enums";
-import { Integer, NombreConOpcionesSchema, NonNegativeInt, OptionalBool, PositiveInt } from "../common/basic_types";
+import { Integer, NombreConOpcionesSchema, NonNegativeInt, PositiveInt } from "../common/basic_types";
 
 
 // ---------------------------------------------------------------------------
@@ -39,7 +39,7 @@ const tecnicaSchema = z.object({
   nombre:      z.string(),
   descripcion: z.string().optional(),
   nivel:       NivelTecnicaSchema.optional(),
-  combinable:  OptionalBool,
+  combinable:  z.boolean().optional(),
   efectos:     z.array(efectoSchema),
   desventajas: z.array(NombreConOpcionesSchema).optional(),
 });

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { OptionalBool, NombreConOpcionesSchema, NonNegativeInt, PdConOpcionesSchema, StringOrNumber, AtributoCalculadoSchema, Integer } from "../common/basic_types";
+import { NombreConOpcionesSchema, NonNegativeInt, PdConOpcionesSchema, StringOrNumber, AtributoCalculadoSchema, Integer } from "../common/basic_types";
 
 
 // ---------------------------------------------------------------------------
@@ -31,9 +31,9 @@ export const CaracteristicasDelSerSchema = z.object({
   tipo:                NombreConOpcionesSchema,
   gnosis:              NonNegativeInt,
   __natura:            Integer.optional(),
-  acumulacion_de_daño: OptionalBool,
-  creado_con_magia:    OptionalBool,
-  criatura_con_pcs:    OptionalBool,
+  acumulacion_de_daño: z.boolean().optional(),
+  creado_con_magia:    z.boolean().optional(),
+  criatura_con_pcs:    z.boolean().optional(),
   /** Essential abilities. Each element has exactly one catalog name key. */
   habilidades_esenciales: z.array(PdConOpcionesSchema).optional(),
   /** Powers. Each element has exactly one catalog name key. */
@@ -46,9 +46,9 @@ export type CaracteristicasDelSer = z.infer<typeof CaracteristicasDelSerSchema>;
 // ---------------------------------------------------------------------------
 export const AjustesDeNivelSchema = z.object({
   __ajuste_por_raza:    NonNegativeInt.optional(),
-  ajuste_por_gnosis_pc: OptionalBool,
-  ajuste_por_legados:   OptionalBool,
-  artefacto_vinculado:  OptionalBool,
+  ajuste_por_gnosis_pc: z.boolean().optional(),
+  ajuste_por_legados:   z.boolean().optional(),
+  artefacto_vinculado:  z.boolean().optional(),
   pds_adicionales:      NonNegativeInt.optional(),
 });
 export type AjustesDeNivel = z.infer<typeof AjustesDeNivelSchema>;

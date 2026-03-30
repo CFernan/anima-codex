@@ -10,8 +10,6 @@ export const NonNegativeInt   = z.number().int().nonnegative();
 export const PositiveInt      = z.number().int().positive();
 export const PD               = NonNegativeInt; // alias — appears as standalone field name in schemas
 export const PositiveFraction = z.number().min(0).max(1)
-export const OptionalBool     = z.boolean().optional()  // do not store value if it is false
-                                 .transform(val => (val === false ? undefined : val))
 export const StringOrNumber   = z.union([z.string(), z.number()])
 
 // ---------------------------------------------------------------------------
@@ -26,23 +24,31 @@ export const ModificadorAtributoSchema = z.object({
   /** Optional free-text description. */
   descripcion:  z.string().optional(),
   /** Used as write-only by engine */
-  __automatico: OptionalBool,
+  __automatico: z.boolean().optional(),
 });
-export type ModificadorAtributo = z.infer<typeof ModificadorAtributoSchema>;
+export type ModificadorAtributoInput = z.infer<typeof ModificadorAtributoSchema>;
+export type ModificadorAtributo = ModificadorAtributoInput & {
+  readonly _key: string;  /** Identifier key for each modifier */
+};
 
-//** Lambda to check uniqueness of automatico + fuente + descripccion */
-const serializeModifierUniquenessKey = (m: ModificadorAtributo) =>
+//** Lambda to create unique key of automatico + fuente + descripccion */
+export const modifierKey = (m: ModificadorAtributoInput): string =>
   `${m.__automatico ? "auto" : ""}|${m.fuente}|${m.descripcion ?? ""}`;
+
+export const makeModifier = (m: ModificadorAtributoInput): ModificadorAtributo => ({
+  ...m,
+  _key: modifierKey(m),
+});
 
 const modificadoresSchema = z.object({
   modificadores_base:       z.array(ModificadorAtributoSchema)
     .refine(
-        uniqueValues(serializeModifierUniquenessKey),
+        uniqueValues(modifierKey),
         { message: "fuente + descripcion must be unique within modificadores_base" }
     ).optional(),
   modificadores_temporales: z.array(ModificadorAtributoSchema)
     .refine(
-        uniqueValues(serializeModifierUniquenessKey),
+        uniqueValues(modifierKey),
         { message: "fuente + descripcion must be unique within modificadores_temporales" }
     ).optional(),
 });
@@ -87,7 +93,7 @@ export const AtributoCalculadoSchema = z.object({
   ...modificadoresSchema.shape,
   ...ResultadoAtributoSchema.shape,
 });
-export type AtributoDerivado = z.infer<typeof AtributoCalculadoSchema>;
+export type AtributoCalculado = z.infer<typeof AtributoCalculadoSchema>;
 
 /** Flexible attribute — an attribute that can be any type of the above. */
 export const AtributoFlexibleSchema = z.union([

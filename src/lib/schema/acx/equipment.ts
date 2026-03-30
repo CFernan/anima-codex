@@ -3,7 +3,7 @@ import {
   TipoTAEnum, TamañoArmaEnum,
 } from "../common/enums";
 import {
-  AtributoCalculadoSchema, OptionalBool, Integer,
+  AtributoCalculadoSchema, Integer,
 } from "../common/basic_types";
 import { schemaFromEnum } from "../common/utils";
 
@@ -47,9 +47,9 @@ const definicionArmaBaseSchema = z.object({
   nombre:          z.string(),
   calidad:         CalidadSchema.optional(),
   tamaño:          TamañoArmaEnum.optional(),
-  a_dos_manos:     OptionalBool,
+  a_dos_manos:     z.boolean().optional(),
   /** Whether this is the character's dominant hand weapon. */
-  mano_no_habil:   OptionalBool,
+  mano_no_habil:   z.boolean().optional(),
   /** Performance granted by this weapon. */
   rendimiento:     rendimientoArmaSchema,
   municion:        municionSchema.optional(),
@@ -69,7 +69,7 @@ const armaduraBaseSchema = z.object({
   /** Armor name. Validated against armor catalog at runtime. */
   nombre:    z.string(),
   calidad:   CalidadSchema.optional(),
-  encantada: OptionalBool,
+  encantada: z.boolean().optional(),
   TA:        rendimientoTASchema,
 });
 

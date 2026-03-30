@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { OptionalBool, NombreConOpcionesSchema } from "../common/basic_types";
+import { NombreConOpcionesSchema } from "../common/basic_types";
 
 
 // ---------------------------------------------------------------------------
@@ -14,7 +14,7 @@ export const PuntosDeCreacionSchema = z.object({
   pcs_liberalizados: z.array(z.object({
       ...NombreConOpcionesSchema.shape,
       /** Whether this entry removes an existing disadvantage. */
-      eliminar_desventaja: OptionalBool,
+      eliminar_desventaja: z.boolean().optional(),
     }),
   ).optional(),
 });

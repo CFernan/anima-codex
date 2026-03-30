@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { z } from "zod";
-import { schemaFromEnum, uniqueValues } from "$lib/schema/common/utils";
+import { getSubSchemaFromPath, schemaFromEnum, uniqueValues } from "$lib/schema/common/utils";
 import { assertValid, assertInvalid } from "../../helpers/test-helpers";
 
 
@@ -82,5 +82,207 @@ describe("uniqueValues", () => {
   it("compares by reference for objects without key extractor", () => {
     const item: helperStruct = { id: "a" };
     expect(uniqueValues()([item, item])).toBe(false);
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// getSubSchemaFromPath
+// ---------------------------------------------------------------------------
+
+describe("getSubSchemaFromPath", () => {
+  const testSchema = z.object({
+    root: z.object({
+      string_basic: z.string(),
+      enum_basic: z.enum(["dummy", "dork"]),
+      number_basic: z.number(),
+      bool_basic: z.boolean(),
+      union_basic: z.union([z.string(), z.number()]),
+
+      number_min_max: z.number().min(1).max(20),
+      number_multiple: z.number().int().multipleOf(5),
+
+      bool_default: z.boolean().default(false),
+      bool_optional: z.boolean().optional(),
+      bool_nullable: z.boolean().nullable(),
+
+      object_basic: z.object({
+        string_basic: z.string(),
+      }),
+      array_basic: z.array(z.number()),
+
+      object_default: z.object({
+        string_basic: z.string(),
+      }).default({ string_basic: "default" }),
+      object_optional: z.object({
+        string_basic: z.string(),
+      }).optional(),
+      object_nullable: z.object({
+        string_basic: z.string(),
+      }).nullable(),
+
+      array_composed: z.array(
+        z.object({
+          number_basic: z.number(),
+        })
+      ),
+      array_composed_array: z.array(
+        z.array(
+          z.object({
+            number_basic: z.number(),
+          })
+        )
+      ),
+      array_refined: z.array(z.number()).refine(data => data.length > 0),
+    }),
+  });
+
+  describe("Primitive and Basic Types", () => {
+    it("should retrieve ZodString", () => {
+      expect(getSubSchemaFromPath(testSchema, "root/string_basic")).toBeInstanceOf(z.ZodString);
+    });
+
+    it("should retrieve ZodEnum", () => {
+      const result = getSubSchemaFromPath(testSchema, "root/enum_basic");
+      expect(result).toBeInstanceOf(z.ZodEnum);
+      if (result instanceof z.ZodEnum) {
+        expect(result.options).toEqual(["dummy", "dork"]);
+      }
+    });
+
+    it("should retrieve ZodNumber", () => {
+      expect(getSubSchemaFromPath(testSchema, "root/number_basic")).toBeInstanceOf(z.ZodNumber);
+    });
+
+    it("should retrieve ZodBoolean", () => {
+      expect(getSubSchemaFromPath(testSchema, "root/bool_basic")).toBeInstanceOf(z.ZodBoolean);
+    });
+
+    it("should retrieve ZodUnion", () => {
+      const result = getSubSchemaFromPath(testSchema, "root/union_basic");
+      expect(result).toBeInstanceOf(z.ZodUnion);
+    });
+
+    it("should retrieve ZodObject", () => {
+      const result = getSubSchemaFromPath(testSchema, "root/object_basic");
+      expect(result).toBeInstanceOf(z.ZodObject);
+    });
+
+    it("should retrieve ZodArray", () => {
+      const result = getSubSchemaFromPath(testSchema, "root/array_basic");
+      expect(result).toBeInstanceOf(z.ZodArray);
+    });
+  });
+
+  describe("Numeric Constraints (Refinements)", () => {
+    it("should preserve min/max constraints", () => {
+      const result = getSubSchemaFromPath(testSchema, "root/number_min_max");
+      expect(result).toBeInstanceOf(z.ZodNumber);
+      expect(result?.safeParse(1 ).success).toBe(true);
+      expect(result?.safeParse(10).success).toBe(true);
+      expect(result?.safeParse(20).success).toBe(true);
+      expect(result?.safeParse(0 ).success).toBe(false);
+      expect(result?.safeParse(21).success).toBe(false);
+    });
+
+    it("should preserve multipleOf constraint", () => {
+      const result = getSubSchemaFromPath(testSchema, "root/number_multiple");
+      expect(result).toBeInstanceOf(z.ZodNumber);
+      expect(result?.safeParse(7 ).success).toBe(false);
+      expect(result?.safeParse(10).success).toBe(true);
+    });
+  });
+
+  describe("Modifiers: Optional, Default, Nullable", () => {
+    // Unpeeled (Metadata)
+    it("should return ZodDefault", () => {
+      expect(getSubSchemaFromPath(testSchema, "root/bool_default")).toBeInstanceOf(z.ZodDefault);
+      expect(getSubSchemaFromPath(testSchema, "root/object_default")).toBeInstanceOf(z.ZodDefault);
+    });
+
+    it("should return ZodOptional", () => {
+      expect(getSubSchemaFromPath(testSchema, "root/bool_optional")).toBeInstanceOf(z.ZodOptional);
+      expect(getSubSchemaFromPath(testSchema, "root/object_optional")).toBeInstanceOf(z.ZodOptional);
+    });
+
+    it("should return ZodNullable", () => {
+      expect(getSubSchemaFromPath(testSchema, "root/bool_nullable")).toBeInstanceOf(z.ZodNullable);
+      expect(getSubSchemaFromPath(testSchema, "root/object_nullable")).toBeInstanceOf(z.ZodNullable);
+    });
+
+    // Peeled (Trailing Slash)
+    it("should return core type when ZodDefault is peeled", () => {
+      expect(getSubSchemaFromPath(testSchema, "root/bool_default/")).toBeInstanceOf(z.ZodBoolean);
+      expect(getSubSchemaFromPath(testSchema, "root/object_default/")).toBeInstanceOf(z.ZodObject);
+    });
+
+    it("should return core type when ZodOptional is peeled", () => {
+      expect(getSubSchemaFromPath(testSchema, "root/bool_optional/")).toBeInstanceOf(z.ZodBoolean);
+      expect(getSubSchemaFromPath(testSchema, "root/object_optional/")).toBeInstanceOf(z.ZodObject);
+    });
+
+    it("should return core type when ZodNullable is peeled", () => {
+      expect(getSubSchemaFromPath(testSchema, "root/bool_nullable/")).toBeInstanceOf(z.ZodBoolean);
+      expect(getSubSchemaFromPath(testSchema, "root/object_nullable/")).toBeInstanceOf(z.ZodObject);
+    });
+  });
+
+  describe("Structural Types", () => {
+    it("should navigate into basic objects", () => {
+      expect(getSubSchemaFromPath(testSchema, "root/object_basic/string_basic"))
+        .toBeInstanceOf(z.ZodString);
+    });
+
+    it("should navigate into objects with modifiers", () => {
+      expect(getSubSchemaFromPath(testSchema, "root/object_default/string_basic"))
+        .toBeInstanceOf(z.ZodString);
+      expect(getSubSchemaFromPath(testSchema, "root/object_optional/string_basic"))
+        .toBeInstanceOf(z.ZodString);
+      expect(getSubSchemaFromPath(testSchema, "root/object_nullable/string_basic"))
+        .toBeInstanceOf(z.ZodString);
+    });
+
+    it("should navigate into basic arrays using []", () => {
+      expect(getSubSchemaFromPath(testSchema, "root/array_basic/[]"))
+        .toBeInstanceOf(z.ZodNumber);
+    });
+
+    it("should navigate into composed arrays", () => {
+      expect(getSubSchemaFromPath(testSchema, "root/array_composed/[]/number_basic"))
+        .toBeInstanceOf(z.ZodNumber);
+    });
+
+    it("should handle multi-level array nesting", () => {
+      expect(getSubSchemaFromPath(testSchema, "root/array_composed_array/[]/[]/number_basic"))
+        .toBeInstanceOf(z.ZodNumber);
+    });
+
+    it("should handle refine and peeling", () => {
+      expect(getSubSchemaFromPath(testSchema, "root/array_refined"))
+        .toBeInstanceOf(z.ZodArray);
+
+      expect(getSubSchemaFromPath(testSchema, "root/array_refined/"))
+        .toBeInstanceOf(z.ZodArray);
+    });
+  });
+
+  describe("Edge Cases and Safety", () => {
+    it("should return undefined for non-existent path", () => {
+      expect(getSubSchemaFromPath(testSchema, "root/ghost_key")).toBeUndefined();
+    });
+
+    it("should return undefined when array syntax [] is used on a non-array", () => {
+      expect(getSubSchemaFromPath(testSchema, "root/string_basic/[]")).toBeUndefined();
+    });
+
+    it("should return the original schema if path is empty", () => {
+      const basicSchema = z.object().optional();
+      expect(getSubSchemaFromPath(basicSchema, "")).toBe(basicSchema);
+    });
+
+    it("should return the original peeled schema if path is /", () => {
+      const basicSchema = z.object().optional();
+      expect(getSubSchemaFromPath(basicSchema, "/")).toBeInstanceOf(z.ZodObject);
+    });
   });
 });
