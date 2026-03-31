@@ -1,4 +1,6 @@
 import { z, type ZodSafeParseResult } from "zod";
+import type { EngineErrorCode, EngineResult, EngineWarningCode } from "$lib/engine";
+import { expect } from "vitest";
 
 /**
  * Represents a processed test case ready for use in `it.each`.
@@ -148,4 +150,34 @@ export function makeStrict<T extends z.ZodTypeAny>(schema: T): T {
     default:
       return schema;
   }
+}
+
+
+// ---------------------------------------------------------------------------
+// EngineResult Helpers
+// ---------------------------------------------------------------------------
+export function assertOk(result: EngineResult<any>, expected: any): any {
+  const [value, warns, error] = result;
+  expect(value).toBe(expected);
+  expect(warns).toBeNull();
+  expect(error).toBeNull();
+}
+
+export function assertError(result: EngineResult<any>, code: EngineErrorCode): void {
+  const [value, warns, error] = result;
+  expect(value).toBeNull();
+  expect(warns).toBeNull();
+  expect(error).not.toBeNull();
+  expect(error!.code).toBe(code);
+}
+
+export function assertOkWarnings(result: EngineResult<any>, expectedValue: any, expectedWarnings: EngineWarningCode[]): void {
+  const [value, warns, error] = result;
+  expect(value).toBe(expectedValue);
+  expect(warns).not.toBeNull();
+  expect(warns!.length).toBe(expectedWarnings.length);
+  for (const i in warns!) {
+    expect(warns![i]).toBe(expectedWarnings[i]);
+  }
+  expect(error).toBeNull();
 }

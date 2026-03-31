@@ -33,7 +33,7 @@ Each user story follows this structure:
 - ✅ US-03  Character schema definition         ← superseded, see note
 - ✖️ US-04  Catalog schema definition           ← superseded, see note
 - ✅ US-05  Base content catalogs
-- 🔲 US-07  Composite attribute resolution
+- ✅ US-07  Composite attribute resolution
 - 🔲 US-08  Primary characteristic modifier table and combat
 - 🔲 US-09  Derived stat computation
 - 🔲 US-10  DP cost resolution
@@ -260,7 +260,7 @@ Catalog schemas are being created on demand alongside base catalogs, done in US-
 
 ## Epic 3 — Rules Engine
 
-### 🔲 US-07 · Composite attribute resolution
+### ✅ US-07 · Composite attribute resolution
 **As a** developer
 **I want** a module that computes the full result structure for any composite attribute
 **so that** the distinction between user input, permanent modifiers, and temporary modifiers
@@ -281,9 +281,9 @@ is enforced consistently and the engine-written `__` fields are always up to dat
 - Unit tests cover all three attribute types, empty arrays, negative modifiers, and boundary values.
 
 **Technical Tasks:**
-- 🔲 Implement `computeAttributeResults` in `src/lib/engine/attributes.ts`, handling `DirectAttribute`, `PDAttribute`, and `ComputedAttribute`.
-- 🔲 Implement `addModifier` and `removeModifier` in the same module.
-- 🔲 Write unit tests in `tests/engine/attributes.test.ts`.
+- ✅ Implement `computeAttributeResults` in `src/lib/engine/attributes.ts`, handling `DirectAttribute`, `PDAttribute`, and `ComputedAttribute`.
+- ✅ Implement `addModifier` and `removeModifier` in the same module.
+- ✅ Write unit tests in `tests/engine/attributes.test.ts`.
 
 ---
 
