@@ -8,22 +8,20 @@ import {
   addModifier,
   removeModifier,
   type constraintCondition,
-} from "$lib/engine/attributes";
-import {
+  type ModificadorAtributo,
   makeModifier,
-  modifierKey,
+} from "$lib/engine/common/attributes";
+import {
+  modifierIdentifier,
 } from "$lib/schema/common/basic_types";
 import type {
   AtributoDirecto,
   AtributoPD,
   AtributoCalculado,
-  ModificadorAtributo,
   ModificadorAtributoInput,
-  AtributoFlexible,
 } from "$lib/schema/common/basic_types";
-import { assertError, assertOk, assertOkWarnings } from "../helpers/test-helpers";
 import { BaseOrTemporal, EngineErrorCode, EngineWarningCode } from "$lib/engine/common/enum";
-import { errorToString } from "$lib/engine";
+import { assertError, assertOk, assertOkWarnings } from "../../helpers/test-helpers";
 
 
 // ---------------------------------------------------------------------------
@@ -475,7 +473,7 @@ describe("addModifier", () => {
     const input = modInput("Raza", 5, "bono racial");
     const [attr, , ] = addModifier(directo(10), BaseOrTemporal.BASE, input);
     const inserted = (attr?.modificadores_base as ModificadorAtributo[])[0];
-    expect(inserted._key).toBe(modifierKey(input));
+    expect(inserted._key).toBe(modifierIdentifier(input));
   });
 
   it("preserves existing modifiers in the target array", () => {
