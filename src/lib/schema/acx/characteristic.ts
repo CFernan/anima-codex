@@ -6,6 +6,7 @@ import {
 import {
   AtributoDirectoSchema,
   AtributoCalculadoSchema,
+  type AtributoDirecto,
 } from "../common/basic_types";
 import { schemaFromEnum } from "../common/utils";
 
@@ -16,7 +17,11 @@ import { schemaFromEnum } from "../common/utils";
 export const CaracteristicasPrimariasSchema = schemaFromEnum(
   CaracteristicaEnum, AtributoDirectoSchema,
 );
-export type CaracteristicasPrimarias = z.infer<typeof CaracteristicasPrimariasSchema>;
+export type CaracteristicasPrimariasInput = z.infer<typeof CaracteristicasPrimariasSchema>;
+export type CaracteristicaPrimaria = AtributoDirecto & {
+  _bono_base:           number;  /** Bonus derived from __final_base */
+  _delta_bono_temporal: number;  /** Additional bonus derived from __final_temporal on top of _bono_base */
+};
 
 // ---------------------------------------------------------------------------
 // Secondary characteristics

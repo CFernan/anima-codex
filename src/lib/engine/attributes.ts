@@ -10,7 +10,8 @@ import {
   makeModifier,
   modifierKey,
 } from "$lib/schema/common/basic_types";
-import { EngineErrorCode, type EngineResult, type EngineWarnings, type Nullable } from "./common/engine_result";
+import { type EngineResult, type EngineWarnings, type Nullable } from "./common/engine_result";
+import { BaseOrTemporal, EngineErrorCode } from "./common/enum";
 
 
 // ---------------------------------------------------------------------------
@@ -53,11 +54,15 @@ function nextAvailableDescription(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Exposed helpers
+// ---------------------------------------------------------------------------
+export type sumCondition = (modificador: ModificadorAtributo, accumulated: number) => Boolean;
+export type constraintCondition<T> = (value: T) => EngineResult<T>;
 
 // ---------------------------------------------------------------------------
 // Modifier sum
 // ---------------------------------------------------------------------------
-export type sumCondition = (modificador: ModificadorAtributo, accumulated: number) => Boolean;
 
 /**
  * Sums all modifier values in O(n). An absent or empty array yields 0 — not
@@ -99,6 +104,7 @@ export function sumModifiers(
  */
 export function baseAtributoDirecto(
   attr: Nullable<AtributoDirecto>,
+  constraint?: constraintCondition<number>,
 ): EngineResult<AtributoDirecto> {
   if (!attr) return [ null, null,
     {
@@ -106,8 +112,17 @@ export function baseAtributoDirecto(
       message: "El atributo es null o undefined",
     }];
 
-  attr.__base_calculada = attr.base;
-  return [attr, null, null];
+  let base = attr.base;
+  let warns: EngineWarnings = [];
+  if (constraint) {
+    const [cValue, cWarns, cError] = constraint(base);
+    if (cError) return [null, null, cError];
+    base = cValue ?? base;
+    if (cWarns) warns.push(...cWarns);
+  }
+
+  attr.__base_calculada = base;
+  return [attr, warns.length > 0 ? warns : null, null];
 }
 
 /**
@@ -121,6 +136,7 @@ export function baseAtributoDirecto(
 export function baseAtributoPD(
   attr: Nullable<AtributoPD>,
   cost: number,
+  constraint?: constraintCondition<number>,
 ): EngineResult<AtributoPD> {
   if (!attr) return [ null, null,
     {
@@ -148,8 +164,17 @@ export function baseAtributoPD(
       message: `PD (${attr.pd}) no es múltiplo de cost (${cost})`,
     }];
 
-  attr.__base_calculada = attr.pd / cost;
-  return [attr, null, null];
+  let base = attr.pd / cost;
+  let warns: EngineWarnings = [];
+  if (constraint) {
+    const [cValue, cWarns, cError] = constraint(base);
+    if (cError) return [null, null, cError];
+    base = cValue ?? base;
+    if (cWarns) warns.push(...cWarns);
+  }
+
+  attr.__base_calculada = base;
+  return [attr, warns.length > 0 ? warns : null, null];
 }
 
 /**
@@ -166,6 +191,7 @@ export function baseAtributoPD(
 export function baseAtributoCalculado(
   attr:      Nullable<AtributoCalculado>,
   transform: () => number,
+  constraint?: constraintCondition<number>,
 ): EngineResult<AtributoCalculado> {
   if (!attr) return [null, null,
     {
@@ -186,8 +212,17 @@ export function baseAtributoCalculado(
       message: `transform debe devolver un entero, devolvió: ${output}`,
     }];
 
-  attr.__base_calculada = output;
-  return [attr, null, null];
+  let base = output;
+  let warns: EngineWarnings = [];
+  if (constraint) {
+    const [cValue, cWarns, cError] = constraint(base);
+    if (cError) return [null, null, cError];
+    base = cValue ?? base;
+    if (cWarns) warns.push(...cWarns);
+  }
+
+  attr.__base_calculada = base;
+  return [attr, warns.length > 0 ? warns : null, null];
 }
 
 
@@ -211,6 +246,8 @@ export function baseAtributoCalculado(
  */
 export function finalAtributo<T extends AtributoFlexible>(
   attr: Nullable<T>,
+  constraintBase?: constraintCondition<number>,
+  constraintTemporal?: constraintCondition<number>,
 ): EngineResult<T> {
   if (!attr) return [null, null,
     {
@@ -224,22 +261,36 @@ export function finalAtributo<T extends AtributoFlexible>(
       message: "__base_calculada debe estar calculado antes de llamar a computeFinal",
     }];
 
-  const [baseSum, baseWarn, baseErr] = sumModifiers(attr.modificadores_base as ModificadorAtributo[]);
+  let warns: EngineWarnings = [];
+
+  const [baseSum, baseWarns, baseErr] = sumModifiers(attr.modificadores_base as ModificadorAtributo[]);
   if (baseErr) return [null, null, baseErr];
+  if (baseWarns) warns.push(...baseWarns);
 
-  const [tempSum, tempWarn, tempErr] = sumModifiers(attr.modificadores_temporales as ModificadorAtributo[]);
-  if (tempErr) return [null, null, tempErr];
-
-  attr.__final_base     = attr.__base_calculada + baseSum!;
-  attr.__final_temporal = attr.__final_base     + tempSum!;
-
-  let totalWarnings: EngineWarnings = null;
-  if (baseWarn && tempWarn) {
-    totalWarnings = [...baseWarn, ...tempWarn];
-  } else {
-    totalWarnings = baseWarn ?? tempWarn;
+  let finalBase = attr.__base_calculada + (baseSum ?? 0);
+  if (constraintBase) {
+    const [cValue, cWarns, cError] = constraintBase(finalBase);
+    if (cError) return [null, null, cError];
+    finalBase = cValue ?? finalBase;
+    if (cWarns) warns.push(...cWarns);
   }
-  return [attr, totalWarnings, null];
+
+  const [tempSum, tempWarns, tempErr] = sumModifiers(attr.modificadores_temporales as ModificadorAtributo[]);
+  if (tempErr) return [null, null, tempErr];
+  if (tempWarns) warns.push(...tempWarns);
+
+  let finalTemporal = finalBase + (tempSum ?? 0);
+  if (constraintTemporal) {
+    const [cValue, cWarns, cError] = constraintTemporal(finalTemporal);
+    if (cError) return [null, null, cError];
+    finalTemporal = cValue ?? finalTemporal;
+    if (cWarns) warns.push(...cWarns);
+  }
+
+  attr.__final_base     = finalBase;
+  attr.__final_temporal = finalTemporal;
+
+  return [attr, warns.length > 0 ? warns : null, null];
 }
 
 
@@ -261,7 +312,7 @@ export function finalAtributo<T extends AtributoFlexible>(
  */
 export function addModifier(
   attr:     Nullable<AtributoFlexible>,
-  tipo:     "base" | "temporal",
+  tipo:     BaseOrTemporal,
   modInput: ModificadorAtributoInput,
 ): EngineResult<AtributoFlexible> {
   if (!attr) return [null, null,
@@ -270,7 +321,7 @@ export function addModifier(
       message: "El atributo es null o undefined",
     }];
 
-  const targetArray = tipo === "base"
+  const targetArray = tipo === BaseOrTemporal.BASE
     ? asRuntimeMods(attr.modificadores_base as ModificadorAtributo[])
     : asRuntimeMods(attr.modificadores_temporales as ModificadorAtributo[]);
 
@@ -291,7 +342,7 @@ export function addModifier(
     modifier      = makeModifier({ ...modifier, descripcion: newDesc });
   }
 
-  if (tipo === "base") {
+  if (tipo === BaseOrTemporal.BASE) {
     return [{ ...attr, modificadores_base: [...targetArray, modifier] }, null, null];
   }
   return [{ ...attr, modificadores_temporales: [...targetArray, modifier] }, null, null];

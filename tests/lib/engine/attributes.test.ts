@@ -1,5 +1,4 @@
 import { describe, it, expect } from "vitest";
-import { EngineErrorCode } from "$lib/engine";
 import {
   sumModifiers,
   baseAtributoDirecto,
@@ -8,6 +7,7 @@ import {
   finalAtributo,
   addModifier,
   removeModifier,
+  type constraintCondition,
 } from "$lib/engine/attributes";
 import {
   makeModifier,
@@ -19,8 +19,11 @@ import type {
   AtributoCalculado,
   ModificadorAtributo,
   ModificadorAtributoInput,
+  AtributoFlexible,
 } from "$lib/schema/common/basic_types";
-import { assertError, assertOk } from "../helpers/test-helpers";
+import { assertError, assertOk, assertOkWarnings } from "../helpers/test-helpers";
+import { BaseOrTemporal, EngineErrorCode, EngineWarningCode } from "$lib/engine/common/enum";
+import { errorToString } from "$lib/engine";
 
 
 // ---------------------------------------------------------------------------
@@ -84,6 +87,18 @@ const directoConBase = (
   ...directo(base, baseMods, tempMods),
   __base_calculada: baseCalculada,
 });
+
+const constraintBase: constraintCondition<number> =
+  (b) => {
+    if (b > 30) {
+      return [null, null, {code: EngineErrorCode.CONSTRAINT_NOT_MATCHED, message: ""}];
+    }
+    else if (b > 20) {
+      return [20, [{code: EngineWarningCode.CONSTRAINT_NOT_MATCHED, message: ""}], null];
+    }
+
+    return [b, null, null];
+  };
 
 
 // ===========================================================================
@@ -168,6 +183,21 @@ describe("baseAtributoDirecto", () => {
     expect(attr?.modificadores_base).toEqual(baseMods);
     expect(attr?.modificadores_temporales).toEqual(tempMods);
   });
+
+  it("constaint applied with no warns or errors", () => {
+    assertOk(baseAtributoDirecto(directo(10), constraintBase),
+             {base: 10, __base_calculada: 10, modificadores_base: [], modificadores_temporales: []});
+  });
+
+  it("constaint applied with warns", () => {
+    assertOkWarnings(baseAtributoDirecto(directo(25), constraintBase),
+                     {base: 25, __base_calculada: 20, modificadores_base: [], modificadores_temporales: []},
+                     [EngineWarningCode.CONSTRAINT_NOT_MATCHED]);
+  });
+
+  it("constaint applied with errors", () => {
+    assertError(baseAtributoDirecto(directo(40), constraintBase), EngineErrorCode.CONSTRAINT_NOT_MATCHED);
+  });
 });
 
 
@@ -210,6 +240,21 @@ describe("baseAttributePd", () => {
     const baseMods = [mod("Categoria", 5)];
     const [attr, , ] = baseAtributoPD(pdAttr(50, baseMods), 2);
     expect(attr?.modificadores_base).toEqual(baseMods);
+  });
+
+  it("constaint applied with no warns or errors", () => {
+    assertOk(baseAtributoPD(pdAttr(10), 2, constraintBase),
+             {pd: 10, __base_calculada: 5, modificadores_base: [], modificadores_temporales: []});
+  });
+
+  it("constaint applied with warns", () => {
+    assertOkWarnings(baseAtributoPD(pdAttr(42), 2, constraintBase),
+                     {pd: 42, __base_calculada: 20, modificadores_base: [], modificadores_temporales: []},
+                     [EngineWarningCode.CONSTRAINT_NOT_MATCHED]);
+  });
+
+  it("constaint applied with errors", () => {
+    assertError(baseAtributoPD(pdAttr(80), 2, constraintBase), EngineErrorCode.CONSTRAINT_NOT_MATCHED);
   });
 });
 
@@ -254,6 +299,21 @@ describe("baseAttributeComputed", () => {
       () => (agiResult?.__base_calculada ?? 0) + sumModifiers(agiResult?.modificadores_base as any)[0]!
     );
     expect(attr?.__base_calculada).toBe(12);
+  });
+
+  it("constaint applied with no warns or errors", () => {
+    assertOk(baseAtributoCalculado(calculado(), () => 10, constraintBase),
+             {__base_calculada: 10, modificadores_base: [], modificadores_temporales: []});
+  });
+
+  it("constaint applied with warns", () => {
+    assertOkWarnings(baseAtributoCalculado(calculado(), () => 22, constraintBase),
+                     {__base_calculada: 20, modificadores_base: [], modificadores_temporales: []},
+                     [EngineWarningCode.CONSTRAINT_NOT_MATCHED]);
+  });
+
+  it("constaint applied with errors", () => {
+    assertError(baseAtributoCalculado(calculado(), () => 40, constraintBase), EngineErrorCode.CONSTRAINT_NOT_MATCHED);
   });
 });
 
@@ -351,6 +411,42 @@ describe("computeFinal", () => {
     expect(attr?.__final_base).toBe(12);
     expect(attr?.__final_temporal).toBe(16);
   });
+
+  it("constaint applied with no warns or errors", () => {
+    let [attr, warn, err] = baseAtributoDirecto(directo(10, [mod("A", 4)], [mod("A", 4)]));
+    [attr, warn, err] = finalAtributo(attr, constraintBase, constraintBase);
+    expect(attr!.__final_base).toEqual(14);
+    expect(attr!.__final_temporal).toEqual(18);
+  });
+
+  it("constaint applied with warns on temp", () => {
+    let [attr, warn, err] = baseAtributoDirecto(directo(10, [mod("A", 4)], [mod("A", 10)]));
+    [attr, warn, err] = finalAtributo(attr, constraintBase, constraintBase);
+    expect(attr!.__final_base).toEqual(14);
+    expect(attr!.__final_temporal).toEqual(20);
+    expect(warn!.length).toEqual(1);
+    expect(warn![0]!.code).toEqual(EngineWarningCode.CONSTRAINT_NOT_MATCHED);
+  });
+
+  it("constaint applied with warns on base and temp", () => {
+    let [attr, warn, err] = baseAtributoDirecto(directo(10, [mod("A", 15)], [mod("A", 10)]));
+    [attr, warn, err] = finalAtributo(attr, constraintBase, constraintBase);
+    expect(attr!.__final_base).toEqual(20);
+    expect(attr!.__final_temporal).toEqual(20);
+    expect(warn!.length).toEqual(2);
+    expect(warn![0]!.code).toEqual(EngineWarningCode.CONSTRAINT_NOT_MATCHED);
+    expect(warn![1]!.code).toEqual(EngineWarningCode.CONSTRAINT_NOT_MATCHED);
+  });
+
+  it("constaint applied with error on temp", () => {
+    let [attr, ,] = baseAtributoDirecto(directo(10, [mod("A", 4)], [mod("A", 50)]));
+    assertError(finalAtributo(attr, constraintBase, constraintBase), EngineErrorCode.CONSTRAINT_NOT_MATCHED);
+  });
+
+  it("constaint applied with error on base", () => {
+    let [attr, ,] = baseAtributoDirecto(directo(10, [mod("A", 50)], [mod("A", 5)]));
+    assertError(finalAtributo(attr, constraintBase, constraintBase), EngineErrorCode.CONSTRAINT_NOT_MATCHED);
+  });
 });
 
 
@@ -359,65 +455,65 @@ describe("computeFinal", () => {
 // ===========================================================================
 
 describe("addModifier", () => {
-  it("returns UNDEFINED_ATTRIBUTE for null attr",      () => assertError(addModifier(null, "base", modInput("X", 1)), EngineErrorCode.UNDEFINED_ATTRIBUTE));
-  it("returns UNDEFINED_ATTRIBUTE for undefined attr", () => assertError(addModifier(undefined, "base", modInput("X", 1)), EngineErrorCode.UNDEFINED_ATTRIBUTE));
+  it("returns UNDEFINED_ATTRIBUTE for null attr",      () => assertError(addModifier(null, BaseOrTemporal.BASE, modInput("X", 1)), EngineErrorCode.UNDEFINED_ATTRIBUTE));
+  it("returns UNDEFINED_ATTRIBUTE for undefined attr", () => assertError(addModifier(undefined, BaseOrTemporal.BASE, modInput("X", 1)), EngineErrorCode.UNDEFINED_ATTRIBUTE));
 
   it("appends manual modifier to modificadores_base", () => {
-    const [attr, , ] = addModifier(directo(10), "base", modInput("Raza", 5));
+    const [attr, , ] = addModifier(directo(10), BaseOrTemporal.BASE, modInput("Raza", 5));
     expect(attr?.modificadores_base).toHaveLength(1);
     expect((attr?.modificadores_base as ModificadorAtributo[])[0].fuente).toBe("Raza");
     expect((attr?.modificadores_base as ModificadorAtributo[])[0].valor).toBe(5);
   });
 
   it("appends manual modifier to modificadores_temporales", () => {
-    const [attr, , ] = addModifier(directo(10), "temporal", modInput("Hechizo", 3));
+    const [attr, , ] = addModifier(directo(10), BaseOrTemporal.TEMPORAL, modInput("Hechizo", 3));
     expect(attr?.modificadores_temporales).toHaveLength(1);
     expect((attr?.modificadores_temporales as ModificadorAtributo[])[0].fuente).toBe("Hechizo");
   });
 
   it("hydrates modifier with _key on insertion", () => {
     const input = modInput("Raza", 5, "bono racial");
-    const [attr, , ] = addModifier(directo(10), "base", input);
+    const [attr, , ] = addModifier(directo(10), BaseOrTemporal.BASE, input);
     const inserted = (attr?.modificadores_base as ModificadorAtributo[])[0];
     expect(inserted._key).toBe(modifierKey(input));
   });
 
   it("preserves existing modifiers in the target array", () => {
     const existing = mod("Equipo", 2);
-    const [attr, , ] = addModifier(directo(10, [existing]), "base", modInput("Raza", 5));
+    const [attr, , ] = addModifier(directo(10, [existing]), BaseOrTemporal.BASE, modInput("Raza", 5));
     expect(attr?.modificadores_base).toHaveLength(2);
     expect((attr?.modificadores_base as ModificadorAtributo[])[0]).toEqual(existing);
   });
 
   it("does not touch the other array when adding to base", () => {
     const tempMods = [mod("Buff", 3)];
-    const [attr, , ] = addModifier(directo(10, [], tempMods), "base", modInput("Raza", 5));
+    const [attr, , ] = addModifier(directo(10, [], tempMods), BaseOrTemporal.BASE, modInput("Raza", 5));
     expect(attr?.modificadores_temporales).toEqual(tempMods);
   });
 
   it("does not touch the other array when adding to temporal", () => {
     const baseMods = [mod("Raza", 5)];
-    const [attr, , ] = addModifier(directo(10, baseMods), "temporal", modInput("Buff", 3));
+    const [attr, , ] = addModifier(directo(10, baseMods), BaseOrTemporal.TEMPORAL, modInput("Buff", 3));
     expect(attr?.modificadores_base).toEqual(baseMods);
   });
 
   it("does not mutate the original attribute", () => {
     const original = directo(10);
-    addModifier(original, "base", modInput("Raza", 5));
+    addModifier(original, BaseOrTemporal.BASE, modInput("Raza", 5));
     expect(original.modificadores_base).toHaveLength(0);
   });
 
   it("returns DUPLICATE_MODIFIER_KEY for manual modifier collision", () => {
     const first = modInput("Raza", 5, "bono racial");
-    const [attr, , ] = addModifier(directo(10), "base", first);
-    const result = addModifier(attr!, "base", modInput("Raza", 5, "bono racial"));
+    const [attr, , ] = addModifier(directo(10), BaseOrTemporal.BASE, first);
+    const result = addModifier(attr!, BaseOrTemporal.BASE, modInput("Raza", 5, "bono racial"));
     assertError(result, EngineErrorCode.DUPLICATE_MODIFIER_KEY);
   });
 
   it("auto modifier with collision gets suffixed description", () => {
     const first = modInput("Raza", 5, "bono", true);
-    const [attr1] = addModifier(directo(10), "base", first);
-    const [attr2] = addModifier(attr1!, "base", modInput("Raza", 5, "bono", true));
+    const [attr1] = addModifier(directo(10), BaseOrTemporal.BASE, first);
+    const [attr2] = addModifier(attr1!, BaseOrTemporal.BASE, modInput("Raza", 5, "bono", true));
     const mods = attr2?.modificadores_base as ModificadorAtributo[];
     expect(mods).toHaveLength(2);
     expect(mods[1].descripcion).toBe("bono (2)");
@@ -425,9 +521,9 @@ describe("addModifier", () => {
 
   it("auto modifier with multiple collisions increments suffix", () => {
     const input = modInput("Raza", 5, "bono", true);
-    const [a1] = addModifier(directo(10), "base", input);
-    const [a2] = addModifier(a1!, "base", input);
-    const [a3] = addModifier(a2!, "base", input);
+    const [a1] = addModifier(directo(10), BaseOrTemporal.BASE, input);
+    const [a2] = addModifier(a1!, BaseOrTemporal.BASE, input);
+    const [a3] = addModifier(a2!, BaseOrTemporal.BASE, input);
     const mods = a3?.modificadores_base as ModificadorAtributo[];
     expect(mods).toHaveLength(3);
     expect(mods[2].descripcion).toBe("bono (3)");
@@ -435,19 +531,19 @@ describe("addModifier", () => {
 
   it("auto modifier with no descripcion gets suffix only", () => {
     const input = modInput("Raza", 5, undefined, true);
-    const [a1] = addModifier(directo(10), "base", input);
-    const [a2] = addModifier(a1!, "base", input);
+    const [a1] = addModifier(directo(10), BaseOrTemporal.BASE, input);
+    const [a2] = addModifier(a1!, BaseOrTemporal.BASE, input);
     const mods = a2?.modificadores_base as ModificadorAtributo[];
     expect(mods[1].descripcion).toBe("(2)");
   });
 
   it("works on AtributoPD", () => {
-    const [attr, , ] = addModifier(pdAttr(50), "base", modInput("Categoria", 5));
+    const [attr, , ] = addModifier(pdAttr(50), BaseOrTemporal.BASE, modInput("Categoria", 5));
     expect(attr?.modificadores_base).toHaveLength(1);
   });
 
   it("works on AtributoCalculado", () => {
-    const [attr, , ] = addModifier(calculado(), "temporal", modInput("Motor", 10));
+    const [attr, , ] = addModifier(calculado(), BaseOrTemporal.TEMPORAL, modInput("Motor", 10));
     expect(attr?.modificadores_temporales).toHaveLength(1);
   });
 });
@@ -523,7 +619,7 @@ describe("removeModifier", () => {
   it("roundtrip: addModifier then removeModifier restores original state", () => {
     const original = directo(10, [mod("Raza", 5)]);
     const input    = modInput("Extra", 3);
-    const [withMod] = addModifier(original, "base", input);
+    const [withMod] = addModifier(original, BaseOrTemporal.BASE, input);
     const inserted  = (withMod?.modificadores_base as ModificadorAtributo[]).find(m => m.fuente === "Extra")!;
     const [restored] = removeModifier(withMod!, inserted._key);
     expect(restored?.modificadores_base).toHaveLength(1);

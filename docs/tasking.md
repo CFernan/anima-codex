@@ -34,7 +34,7 @@ Each user story follows this structure:
 - ✖️ US-04  Catalog schema definition           ← superseded, see note
 - ✅ US-05  Base content catalogs
 - ✅ US-07  Composite attribute resolution
-- 🔲 US-08  Primary characteristic modifier table and combat
+- ✅ US-08  Primary characteristic modifier table and combat
 - 🔲 US-09  Derived stat computation
 - 🔲 US-10  DP cost resolution
 - 🔲 US-11  Automatic modifier lifecycle
@@ -287,7 +287,7 @@ is enforced consistently and the engine-written `__` fields are always up to dat
 
 ---
 
-### 🔲 US-08 · Primary characteristic modifier table
+### ✅ US-08 · Primary characteristic modifier table
 **As a** developer
 **I want** the engine to compute the Characteristic Modifier for any primary stat value
 **so that** all derived stats that depend on it are calculated correctly.
@@ -301,8 +301,8 @@ is enforced consistently and the engine-written `__` fields are always up to dat
 - The function handles values at table boundaries correctly.
 
 **Technical Tasks:**
-- 🔲 Implement `characteristicModifier` in `src/lib/engine/tables.ts` using a hardcoded lookup table.
-- 🔲 Write unit tests covering all representative values and boundary cases.
+- ✅ Implement `characteristicModifier` in `src/lib/engine/tables.ts` using a hardcoded lookup table.
+- ✅ Write unit tests covering all representative values and boundary cases.
 
 ---
 

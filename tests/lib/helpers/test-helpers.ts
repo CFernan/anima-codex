@@ -158,7 +158,7 @@ export function makeStrict<T extends z.ZodTypeAny>(schema: T): T {
 // ---------------------------------------------------------------------------
 export function assertOk(result: EngineResult<any>, expected: any): any {
   const [value, warns, error] = result;
-  expect(value).toBe(expected);
+  expect(value).toEqual(expected);
   expect(warns).toBeNull();
   expect(error).toBeNull();
 }
@@ -168,16 +168,16 @@ export function assertError(result: EngineResult<any>, code: EngineErrorCode): v
   expect(value).toBeNull();
   expect(warns).toBeNull();
   expect(error).not.toBeNull();
-  expect(error!.code).toBe(code);
+  expect(error!.code).toEqual(code);
 }
 
 export function assertOkWarnings(result: EngineResult<any>, expectedValue: any, expectedWarnings: EngineWarningCode[]): void {
   const [value, warns, error] = result;
-  expect(value).toBe(expectedValue);
+  expect(value).toEqual(expectedValue);
   expect(warns).not.toBeNull();
-  expect(warns!.length).toBe(expectedWarnings.length);
+  expect(warns!.length).toEqual(expectedWarnings.length);
   for (const i in warns!) {
-    expect(warns![i]).toBe(expectedWarnings[i]);
+    expect(warns![i]!.code).toEqual(expectedWarnings[i]);
   }
   expect(error).toBeNull();
 }
