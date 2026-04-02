@@ -17,4 +17,3 @@ export const HabilidadesPsiquicasSchema = z.object({
   /** Mental patterns purchased. */
   patrones_mentales: z.array(PdConOpcionesSchema).optional(),
 });
-export type HabilidadesPsiquicas = z.infer<typeof HabilidadesPsiquicasSchema>;

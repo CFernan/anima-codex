@@ -18,4 +18,3 @@ export const PuntosDeCreacionSchema = z.object({
     }),
   ).optional(),
 });
-export type PuntosDeCreacion = z.infer<typeof PuntosDeCreacionSchema>;

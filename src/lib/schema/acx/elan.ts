@@ -12,4 +12,3 @@ export const ElanSchema = z.object({
   /** Boons granted at current elan level. */
   dones:  z.array(z.string()),
 });
-export type Elan = z.infer<typeof ElanSchema>;

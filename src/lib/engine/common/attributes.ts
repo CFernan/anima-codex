@@ -3,16 +3,27 @@ import type {
   AtributoDirecto,
   AtributoPD,
   AtributoCalculado,
-  ModificadorAtributo,
   ModificadorAtributoInput,
+  ModificadorAtributoSchema,
 } from "$lib/schema/common/basic_types";
 import {
-  makeModifier,
-  modifierKey,
+  modifierIdentifier,
 } from "$lib/schema/common/basic_types";
-import { type EngineResult, type EngineWarnings, type Nullable } from "./common/engine_result";
-import { BaseOrTemporal, EngineErrorCode } from "./common/enum";
+import { type EngineResult, type EngineWarnings, type Nullable } from "./engine_result";
+import { BaseOrTemporal, EngineErrorCode } from "./enum";
 
+
+// ---------------------------------------------------------------------------
+// Types derived from Zod Schema
+// ---------------------------------------------------------------------------
+export type ModificadorAtributo = ModificadorAtributoInput & {
+  readonly _key: string;  /** Identifier key for each modifier */
+};
+
+export const makeModifier = (m: ModificadorAtributoInput): ModificadorAtributo => ({
+  ...m,
+  _key: modifierIdentifier(m),
+});
 
 // ---------------------------------------------------------------------------
 // Runtime type guards
@@ -48,7 +59,7 @@ function nextAvailableDescription(
   let n = 2;
   while (true) {
     const candidate = base ? `${base} (${n})` : `(${n})`;
-    const testKey   = modifierKey({ ...m, descripcion: candidate });
+    const testKey   = modifierIdentifier({ ...m, descripcion: candidate });
     if (!existing.some(e => e._key === testKey)) return candidate;
     n++;
   }
@@ -327,7 +338,7 @@ export function addModifier(
 
   let modifier: ModificadorAtributo = makeModifier(modInput);
 
-  const key       = modifierKey(modifier);
+  const key       = modifierIdentifier(modifier);
   const collision = targetArray.some(m => m._key === key);
 
   if (collision) {

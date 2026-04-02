@@ -85,4 +85,3 @@ export const KiSchema = z.object({
   /** Ki invocation subsystem. */
   invocacion_por_ki:       invocacionPorKiSchema.optional(),
 });
-export type Ki = z.infer<typeof KiSchema>;

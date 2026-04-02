@@ -25,4 +25,3 @@ export const PsiquicosSchema = z.object({
     })),
   })),
 });
-export type Psiquicos = z.infer<typeof PsiquicosSchema>;

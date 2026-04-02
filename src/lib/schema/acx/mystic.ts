@@ -74,4 +74,3 @@ export const MisticosSchema = z.object({
     descripcion_dragon:  z.string(),
   }).optional(),
 });
-export type Misticos = z.infer<typeof MisticosSchema>;

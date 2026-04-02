@@ -7,13 +7,11 @@ import { z } from "zod";
 export const CaracteristicaEnum = z.enum([
   "agi", "con", "des", "fue", "int", "per", "pod", "vol",
 ]);
-export type Caracteristica = z.infer<typeof CaracteristicaEnum>;
 
 // Ki only uses 6 characteristics (no int, no per)
 export const KiCaracteristicaEnum = z.enum([
   "agi", "con", "des", "fue", "pod", "vol",
 ]);
-export type KiCaracteristica = z.infer<typeof KiCaracteristicaEnum>;
 
 // ---------------------------------------------------------------------------
 // Other stats enums
@@ -21,13 +19,11 @@ export type KiCaracteristica = z.infer<typeof KiCaracteristicaEnum>;
 export const ResistenciaEnum = z.enum([
   "presencia", "rf", "rv", "re", "rm", "rp",
 ]);
-export type Resistencia = z.infer<typeof ResistenciaEnum>;
 
 export const CapacidadFisicaEnum = z.enum([
   "turno_base", "pvs", "tipo_de_movimiento", "indice_de_peso",
   "cansancio", "regeneracion", "acciones_maximas",
 ]);
-export type CapacidadFisica = z.infer<typeof CapacidadFisicaEnum>;
 
 // ---------------------------------------------------------------------------
 // Primary abilities
@@ -55,7 +51,6 @@ export const HabilidadPsiquicaBasicaEnum = z.enum([
 export const TipoTAEnum = z.enum([
   "fil", "con", "pen", "cal", "ele", "fri", "ene",
 ]);
-export type TipoTA = z.infer<typeof TipoTAEnum>;
 
 export const TamañoArmaEnum = z.enum(["normal", "enorme", "gigante"]);
 
@@ -67,7 +62,6 @@ export const MantenimientoTecnicaEnum = z.enum([
 ]);
 
 export const NivelTecnicaSchema = z.union([z.literal(1), z.literal(2), z.literal(3)]);
-export type NivelTecnica = z.infer<typeof NivelTecnicaSchema>;
 
 // ---------------------------------------------------------------------------
 // Magic

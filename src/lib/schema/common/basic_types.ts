@@ -27,28 +27,20 @@ export const ModificadorAtributoSchema = z.object({
   __automatico: z.boolean().optional(),
 });
 export type ModificadorAtributoInput = z.infer<typeof ModificadorAtributoSchema>;
-export type ModificadorAtributo = ModificadorAtributoInput & {
-  readonly _key: string;  /** Identifier key for each modifier */
-};
 
 //** Lambda to create unique key of automatico + fuente + descripccion */
-export const modifierKey = (m: ModificadorAtributoInput): string =>
+export const modifierIdentifier = (m: ModificadorAtributoInput): string =>
   `${m.__automatico ? "auto" : ""}|${m.fuente}|${m.descripcion ?? ""}`;
-
-export const makeModifier = (m: ModificadorAtributoInput): ModificadorAtributo => ({
-  ...m,
-  _key: modifierKey(m),
-});
 
 const modificadoresSchema = z.object({
   modificadores_base:       z.array(ModificadorAtributoSchema)
     .refine(
-        uniqueValues(modifierKey),
+        uniqueValues(modifierIdentifier),
         { message: "fuente + descripcion must be unique within modificadores_base" }
     ).optional(),
   modificadores_temporales: z.array(ModificadorAtributoSchema)
     .refine(
-        uniqueValues(modifierKey),
+        uniqueValues(modifierIdentifier),
         { message: "fuente + descripcion must be unique within modificadores_temporales" }
     ).optional(),
 });
@@ -61,8 +53,7 @@ export const ResultadoAtributoSchema = z.object({
   __base_calculada: Integer.optional(), // if it is equal than final_base no need to store
   __final_base:     Integer.optional(),
   __final_temporal: Integer.optional(), // if it is equal than final_base no need to store
-})
-export type ResultadoAtributo = z.infer<typeof ResultadoAtributoSchema>;
+});
 
 // ---------------------------------------------------------------------------
 // Attribute types

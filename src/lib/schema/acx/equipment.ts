@@ -60,7 +60,6 @@ export const ArmaSchema = z.object({
   /** Off-hand weapons in combined/dual wielding. Max one level deep. */
   armas_combinadas: z.array(definicionArmaBaseSchema).optional(),
 });
-export type Arma = z.infer<typeof ArmaSchema>;
 
 // ---------------------------------------------------------------------------
 // Armor
@@ -77,7 +76,6 @@ export const ArmaduraSchema = z.object({
   capas:    z.array(armaduraBaseSchema).optional(),
   TA_final: rendimientoTASchema,
 });
-export type Armadura = z.infer<typeof ArmaduraSchema>;
 
 // ---------------------------------------------------------------------------
 // Inventory
@@ -96,4 +94,3 @@ export const EquipoSchema = z.object({
   armadura:   ArmaduraSchema.optional(),
   inventario: z.array(inventarioSchema).optional(),
 });
-export type Equipo = z.infer<typeof EquipoSchema>;

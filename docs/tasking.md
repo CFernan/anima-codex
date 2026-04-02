@@ -315,7 +315,7 @@ is enforced consistently and the engine-written `__` fields are always up to dat
 **Dependencies:** US-07, US-08
 
 **Acceptance Criteria:**
-- The engine computes all derived stats in scope: Characteristic Modifiers, Movement, Initiative, all Resistance values, Life Points.
+- The engine computes all derived stats in scope: caracteristicas_secundarias, capacidades_fisicas and resistencias.
 - Derived stats use `__final_base` (not `__final_temporal`) of primary characteristics as their input, unless a specific rule states otherwise.
 - All Anima-specific rounding rules are applied correctly.
 - Computed values are consistent with the reference `.xlsx` sheet for the same inputs.

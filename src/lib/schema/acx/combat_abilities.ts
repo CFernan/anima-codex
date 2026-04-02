@@ -21,7 +21,6 @@ export const HabilidadesDelKiSchema = z.object({
   /** PD invested in martial knowledge. */
   conocimiento_marcial: AtributoPDSchema.optional(),
 });
-export type HabilidadesDelKi = z.infer<typeof HabilidadesDelKiSchema>;
 
 // ---------------------------------------------------------------------------
 // Combat skills section inside a category
@@ -61,4 +60,3 @@ export const HabilidadesDeCombateSchema = z.object({
   /** Supernatural combat tables purchased. */
   tablas_de_combate_sobrenatural: z.array(PdConOpcionesSchema).optional(),
 });
-export type HabilidadesDeCombate = z.infer<typeof HabilidadesDeCombateSchema>;

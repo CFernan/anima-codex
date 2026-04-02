@@ -52,11 +52,9 @@ export const CategoriaInversionSchema = z.object({
   /** PD cost of class transition (multiclass). */
   pd_cambio_de_categoria:     pdCambioDeCategoriaSchema.optional(),
 });
-export type CategoriaInversion = z.infer<typeof CategoriaInversionSchema>;
 
 export const InversionPdsSchema = z.object({
   __pds_invertidos: NonNegativeInt.optional(),
   __pds_totales:    NonNegativeInt.optional(),
   categorias:       z.array(CategoriaInversionSchema),
 })
-export type InversionPds = z.infer<typeof InversionPdsSchema>;

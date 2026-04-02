@@ -18,11 +18,9 @@ export const HabilidadesSecundariasCategoriaSchema = z.record(
   z.string(),                                   // group
   z.record(z.string(), AtributoFlexibleSchema), // records of skills
 );
-export type HabilidadesSecundariasCategoria = z.infer<typeof HabilidadesSecundariasCategoriaSchema>;
 
 // Next schema is used for global result (sum of all categories) thus it takes Computed Schema
 export const HabilidadesSecundariasSchema = z.record(
   z.string(),
   z.record(z.string(), AtributoCalculadoSchema),
 );
-export type HabilidadesSecundarias = z.infer<typeof HabilidadesSecundariasSchema>;

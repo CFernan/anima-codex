@@ -148,4 +148,3 @@ export const EstadoSchema = z.object({
   salud_mental: NonNegativeInt.optional(),
   trastornos:   z.array(z.string()).optional(),
 });
-export type Estado = z.infer<typeof EstadoSchema>;

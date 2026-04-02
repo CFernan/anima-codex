@@ -1,7 +1,6 @@
 import z from "zod";
 import { CategoriaDefinicionSchema, type CategoriasCatalogInput } from "$lib/schema/catalog/category";
 import { ConvocatoriaEnum, HabilidadCombateBasicaEnum, HabilidadPsiquicaBasicaEnum, HabilidadSobrenaturalBasicaEnum } from "$lib/schema/common/enums";
-import { CombateCostePDSchema } from "$lib/schema/catalog/combat";
 import { SecundariasBaseTodasEnum, SecundariasCostePDBaseSchema } from "./secondaryAbilities";
 import { schemaFromEnum, uniqueValues } from "$lib/schema/common/utils";
 import { PositiveInt } from "$lib/schema/common/basic_types";

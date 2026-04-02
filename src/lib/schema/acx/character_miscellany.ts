@@ -21,7 +21,6 @@ export const DescripcionSchema = z.object({
   imagenes:     z.array(z.string()).optional(),
   // any other custom additional field string or number or bool
 }).catchall(z.union([z.string(), z.number(), z.boolean()]));
-export type Descripcion = z.infer<typeof DescripcionSchema>;
 
 // ---------------------------------------------------------------------------
 // Caracteristicas del ser — mandatory for all characters
@@ -39,7 +38,6 @@ export const CaracteristicasDelSerSchema = z.object({
   /** Powers. Each element has exactly one catalog name key. */
   poderes:                z.array(PdConOpcionesSchema).optional(),
 });
-export type CaracteristicasDelSer = z.infer<typeof CaracteristicasDelSerSchema>;
 
 // ---------------------------------------------------------------------------
 // Level adjustments
@@ -51,7 +49,6 @@ export const AjustesDeNivelSchema = z.object({
   artefacto_vinculado:  z.boolean().optional(),
   pds_adicionales:      NonNegativeInt.optional(),
 });
-export type AjustesDeNivel = z.infer<typeof AjustesDeNivelSchema>;
 
 // ---------------------------------------------------------------------------
 // Sanity

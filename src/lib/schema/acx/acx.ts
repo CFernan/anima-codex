@@ -84,5 +84,3 @@ export const AcxSchema = z.object({
   personaje:      basePersonajeSchema,
   catalogo_local: CatalogoLocalSchema,
 });
-export type Character = z.infer<typeof AcxSchema>;
-export type CharacterInput = z.input<typeof AcxSchema>;

@@ -1,4 +1,4 @@
-import type { CaracteristicaPrimaria } from "$lib/schema/acx/characteristic";
+import type { AtributoDirecto } from "$lib/schema/common/basic_types";
 import { type EngineResult } from "../common/engine_result";
 import { EngineErrorCode } from "../common/enum";
 
@@ -26,6 +26,11 @@ const TABLE_CHARACTERISTICS_MODIFIERS = [
   +40, // 19
   +45, // 20
 ]
+
+export type CaracteristicaPrimaria = AtributoDirecto & {
+  _bono_base:           number;  /** Bonus derived from __final_base */
+  _delta_bono_temporal: number;  /** Additional bonus derived from __final_temporal on top of _bono_base */
+};
 
 export function bonoCaracteristicaPrimaria(
   attr: CaracteristicaPrimaria,

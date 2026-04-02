@@ -22,4 +22,3 @@ export const HabilidadesSobrenaturalesSchema = z.object({
   /** Summoning subsystem — all four required if convocatoria is present. */
   convocatoria: schemaFromEnum(ConvocatoriaEnum, AtributoPDSchema).optional(),
 });
-export type HabilidadesSobrenaturales = z.infer<typeof HabilidadesSobrenaturalesSchema>;
