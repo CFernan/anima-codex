@@ -1,0 +1,42 @@
+main {
+  padding: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.files-section {
+  background: #eee;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.character-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+th,
+td {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+input {
+  width: 60px;
+  padding: 4px;
+}
+
+.output {
+  font-family: monospace;
+  font-weight: bold;
+}
+
+.bonus {
+  color: #2c7a7b;
+}
+
+.capitalize {
+  text-transform: uppercase;
+}

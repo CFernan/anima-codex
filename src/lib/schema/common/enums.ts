@@ -7,6 +7,7 @@ import { z } from "zod";
 export const CaracteristicaEnum = z.enum([
   "agi", "con", "des", "fue", "int", "per", "pod", "vol",
 ]);
+export type Caracteristica = z.infer<typeof CaracteristicaEnum>;
 
 // Ki only uses 6 characteristics (no int, no per)
 export const KiCaracteristicaEnum = z.enum([

@@ -373,11 +373,14 @@ export function removeModifier(
   attr: Nullable<AtributoFlexible>,
   key:  string,
 ): EngineResult<AtributoFlexible> {
+  if (key === "") return [attr, null, null];
+
   if (!attr) return [null, null,
     {
       code:    EngineErrorCode.UNDEFINED_ATTRIBUTE,
       message: "El atributo es null o undefined",
     }];
+
 
   return [
     {

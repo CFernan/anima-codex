@@ -1,8 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import type { CaracteristicaPrimaria } from "$lib/schema/acx/characteristic";
-import { bonoCaracteristicaPrimaria } from '$lib/engine/tables/characteristic_bono';
 import { EngineErrorCode } from '$lib/engine/common/enum';
-import { errorToString } from '$lib/engine';
+import { bonoCaracteristicaPrimaria, type CaracteristicaPrimaria } from '$lib/engine/character/primary_characteristics';
 
 describe('bonoCaracteristicaPrimaria', () => {
 

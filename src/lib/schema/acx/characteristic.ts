@@ -6,7 +6,6 @@ import {
 import {
   AtributoDirectoSchema,
   AtributoCalculadoSchema,
-  type AtributoDirecto,
 } from "../common/basic_types";
 import { schemaFromEnum } from "../common/utils";
 
@@ -17,6 +16,7 @@ import { schemaFromEnum } from "../common/utils";
 export const CaracteristicasPrimariasSchema = schemaFromEnum(
   CaracteristicaEnum, AtributoDirectoSchema,
 );
+export type CaracteristicaPrimariaInput = z.infer<typeof AtributoDirectoSchema>;
 
 // ---------------------------------------------------------------------------
 // Secondary characteristics
@@ -27,6 +27,7 @@ export const CaracteristicasSecundariasSchema = z.object({
   apariencia: AtributoDirectoSchema,
   tamaño:     AtributoCalculadoSchema.optional(),
 });
+export type CaracteristicasSecundariasInput = z.infer<typeof CaracteristicasSecundariasSchema>;
 
 // ---------------------------------------------------------------------------
 // Physical capacities — all 4, modifiers only

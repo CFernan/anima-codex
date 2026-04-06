@@ -108,7 +108,7 @@ function unwrapZodType(wrapper: z.ZodTypeAny): z.ZodTypeAny {
  *   3. Navigates to through array elements (z.object)
  *   4. Returns 'name' peeled schema without modifiers (z.string)
  */
-export function getSubSchemaFromPath(schema: z.ZodTypeAny, path: string): z.ZodTypeAny | undefined {
+export function getSubSchemaFromPath(schema: z.ZodTypeAny, path: string): any {
   if (!schema) return undefined;
 
   // Exit if no more nesting
